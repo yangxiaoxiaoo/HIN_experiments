@@ -1,0 +1,11 @@
+#PBS -l nodes=1:ppn=12
+#PBS -l walltime=48:00:00
+#PBS -j oe
+
+set -x
+set -e
+
+cd $PBS_O_WORKDIR
+#pbsdcp video-dim.txt user-dim_result.txt $TMPDIR
+../all_enron ./enron_graph.wgt.norm ./rndWalker.query 10
+
