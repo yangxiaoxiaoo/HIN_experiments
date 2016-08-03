@@ -105,37 +105,23 @@ QueryResultTrees AStar_Prophet_Tree(const graph_t& g, Query_tree querytree, doub
         }
 
     vector<GeneralizedQuery> decomposed_queries = decompo_Query_Tree(querytree);
-    vector<vector<unordered_map<int, float> > > layers_2D;
-    unordered_set<int> junction_set1;
-    unordered_set<int> junction_set2;
-    bool flip = true;
-    //case 1: two terminals join, both set empty.
-    //case 2: terminals left join junction, set1 not empty
-    //case 3: junction left jion terminal, set2 not empty
-    //case 4: two junctions join, bot set non-empty
-    for (int i=0; i<decomposed_queries.size(); i++){
+    unordered_map<int, unordered_map<int, float>> node2layers; //candidate set with each's weight from lower level terminals. Will return this as tree prophet graph
+
+    for (int i=0; i<decomposed_queries.size(); i++){//process by the post-order
         GeneralizedQuery current_query = decomposed_queries[i];
-        if (!junction_set1.empty()){
-            current_query.src = junction_set1;
+        if (find(querytree.junctions.begin(), querytree.junctions.end(), current_query.srcs.begin()->first)!= querytree.junctions.end()){ //if src is a junction, get candidate layers from previous iteration
+            current_query.srcs = node2layers[current_query.srcs.begin()->first];
         }
-        if (!junction_set2.empty()){
-            current_query.tgt = junction_set2;
+        else{
+            if(find(querytree.junctions.begin(), querytree.junctions.end(), current_query.tgts.begin()->first)!= querytree.junctions.end()){ //tgt is a junction
+                current_query.tgts = node2layers[current_query.tgts.begin()->first];
+            }
         }
         vector<unordered_map<int, float> > layers = create_Prophet_Heuristics_generalized(g, current_query, timeUsed);//layers stores the legitimate nodes on each level. Each layer is a set.
-        layers_2D.push_back(layers);
-        int junction_level = decomposed_queries[i].pos_junction;
+        for (int i=0; i< layers.size(); i++){
+            node2layers[current_query.nodes[i]] = layers[i];  //i-th node updated into the candidate set chart. using map--unordered map for now...
+        }
 
-        if (flip == true) {
-                for(unordered_map<int, float>::iterator it = layers[junction_level].begin(); it!= layers[junction_level].end(); ++it){
-                    junction_set1.insert(it->first);
-                }
-             }
-        else {
-                for(unordered_map<int, float>::iterator it = layers[junction_level].begin(); it!= layers[junction_level].end(); ++it){
-                    junction_set2.insert(it->first);
-                }
-             }
-        flip = ! flip;
     }
 
 

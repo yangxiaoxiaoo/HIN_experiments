@@ -39,12 +39,13 @@ typedef struct Query{
 }Query;
 
 typedef struct GeneralizedQuery{ //generalized, reusable query allowing src and tgt to be sets
-	std::unordered_set<int> src;
-	std::unordered_set<int> tgt;
+	std::unordered_map<int, float> srcs;
+	std::unordered_map<int, float> tgts;
 	int pos_junction; //used for the next iteration indexing. which level is junction node -------------specified by the post-order traverse
 	//TODO: modify query decomposition to assign this value!
 	float time;
 	std::vector<int> pattern; //only types of nodes here
+	std::vector<int> nodes;
 }GeneralizedQuery;
 
 typedef std::pair<int, int> Edge;
@@ -64,9 +65,15 @@ typedef struct Query_tree{
 
 	//given a tree query input. At this point, we assume all queries are trees
 	//we have already decomposed the tree into post-order list of nodes
+	std::unordered_map<int, int> map2leftcdr;
+	std::unordered_map<int, int> map2rightcdr;
+	std::unordered_map<int, int> map2parent;
+	std::unordered_map<int, int> map2patthern;
+
 	std::vector<int> nodes_ordered; //unknown set as 0.
     std::vector<int> terminals_index; //the position of n terminals in the ordered nodes
     std::vector<int> junction_index; //the position of (n-1) junction nodes
+    std::vector<int> junctions;
 	std::vector<int> patterns;//the type of nodes
 
 //	std::map<Edge, int> Edges_types; //map a given edge to the type

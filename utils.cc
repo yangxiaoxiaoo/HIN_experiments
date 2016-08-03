@@ -349,47 +349,79 @@ vector<Path> pq2vec(priority_queue<Path, std::vector<Path>, comparator2> candida
 
 vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree){ //only decompose the pattern, ititialize source and target as empty
     vector<GeneralizedQuery> decomposed_queries;
+    GeneralizedQuery generalized_query;
     cout<< "decomposing tree query..." << endl;
 
     //starting a new decomposed path.
 
-
     vector <int> non_touched_JT; //terminals and juctions that haven't been put into decomposed paths yet
     for(int i=0; i<(QTree.nodes_ordered.size()); i++){
-            if(find(QTree.junction_index.begin(), QTree.junction_index.end(), i)
-               || find(QTree.terminals_index.begin(), QTree.terminals_index.end(), i)){
+            if((find(QTree.junction_index.begin(), QTree.junction_index.end(), i)!= QTree.junction_index.end())
+               || (find(QTree.terminals_index.begin(), QTree.terminals_index.end(), i) != QTree.terminals_index.end())){
                     non_touched_JT.push_back(QTree.nodes_ordered[i]);
                }
     }
     for(int i=0; i<(QTree.junction_index.size()); i++){
             //for each junction node, find the src and tgt and delete them from non_touched_JT
-            GeneralizedQuery generalized_query;
-            vector <int> nodes_pattern;
 
+            vector <int> nodes_pattern;
+            vector <int> nodes_temp; //for finding the position of junction
             int current_junction_pos = QTree.junction_index[i];
             int current_junction = QTree.nodes_ordered[current_junction_pos];
-            int ref_pos = *find(non_touched_JT.begin(), non_touched_JT.end(), current_junction_pos);
+            int ref_pos = find(non_touched_JT.begin(), non_touched_JT.end(), current_junction) - non_touched_JT.begin();
+
             int src = non_touched_JT[ref_pos - 2];
             int tgt = non_touched_JT[ref_pos - 1];
-            non_touched_JT.erase(non_touched_JT.begin()+ ref_pos - 2);
-            non_touched_JT.erase(non_touched_JT.begin()+ ref_pos - 1);
-            int src_index = *find(QTree.nodes_ordered.begin(), QTree.nodes_ordered.end(), src);
-            int tgt_index = *find(QTree.nodes_ordered.begin(), QTree.nodes_ordered.end(), tgt);
-            for(int j = src_index, j<=tgt_index, j++){
-                nodes_pattern.push_back(QTree.patterns[j]);
-                cout<<"added " <<QTree.nodes_ordered[j] << " to the current path, "<<"his pattern is "<<QTree.patterns[j]<<endl;
+            int current_node;
+            int next_node;
+
+            //from src to junction, then to tgt
+            //src to junction---up
+            for(current_node = src; current_node!= current_junction;){
+                nodes_pattern.push_back(QTree.map2patthern[current_node]);
+                nodes_temp.push_back(current_node);
+                cout<<"added " <<current_node << " to the current path, "<<"his pattern is "<<QTree.map2patthern[current_node]<<endl;
+                next_node = QTree.map2parent[current_node];
+                current_node = next_node;
             }
+            //junction to tgt---down
+            for(current_node = current_junction; current_node!= tgt;){
+                nodes_pattern.push_back(QTree.map2patthern[current_node]);
+                nodes_temp.push_back(current_node);
+                cout<<"added " <<current_node << " to the current path, "<<"his pattern is "<<QTree.map2patthern[current_node]<<endl;
+                if (QTree.map2rightcdr.find(current_node) == QTree.map2rightcdr.end()){
+                        next_node = QTree.map2leftcdr[current_node];
+                    }
+                else
+                        next_node= QTree.map2rightcdr[current_node]; //path assumption: either have one right child or have one left node
+                current_node = next_node;
+            }
+
+
+            nodes_pattern.push_back(QTree.map2patthern[tgt]);
+            nodes_temp.push_back(tgt);
+            cout<<"added " <<tgt << " to the current path, "<<"his pattern is "<<QTree.map2patthern[tgt]<<endl;
+
+            non_touched_JT.erase(std::remove(non_touched_JT.begin(), non_touched_JT.end(), src),non_touched_JT.end());
+            non_touched_JT.erase(std::remove(non_touched_JT.begin(), non_touched_JT.end(), tgt),non_touched_JT.end());
+
             generalized_query.pattern = nodes_pattern;
-            generalized_query.src = src;//for now, even if it is a junction, init it with one node. Do the decision later on what is it
-            generalized_query.tgt = tgt;
-            generalized_query.pos_junction = *find(nodes_pattern.begin(), nodes_pattern.end(), current_junction)
-    }
-    if (non_touched_JT.size()> 0){
-        cout<<"warning: not all terminal/junction nodes are included!"<<endl;
+            generalized_query.srcs[src]=0.0;//for now, even if it is a junction, init it with one node. Do the decision later on what is it
+            generalized_query.tgts[tgt]=0.0;
+            generalized_query.pos_junction = find(nodes_temp.begin(), nodes_temp.end(), current_junction)-nodes_temp.begin();
+            generalized_query.nodes = nodes_temp;
+            decomposed_queries.push_back(generalized_query);
+            cout<< "added the above query to decomposed vector, the remaining JT size is "<<non_touched_JT.size()<< endl;
     }
 
-        //now it's time to insert the edge type into this decomposed query's pattern!
-/*****dont do this for now.
+        cout<<non_touched_JT.size()<<"==make sure is 1" <<endl;
+
+    return decomposed_queries;
+
+}
+
+/*****dont do this for now.        //now it's time to insert the edge type into this decomposed query's pattern!
+
         vector <int> edge_included;
         edge_included.push_back(nodes_pattern[0]);
         for(int i=1; i<nodes_pattern.size(); i++){
@@ -401,13 +433,7 @@ vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree){ //only decompose 
 */       //update the decomposed query pattern done.
 
 
-        decomposed_queries.push_back(generalized_query);
-        cout<< "added the above query to decomposed vector"<< endl;
-   }
 
-    return decomposed_queries;
-
-}
 
 /*todo
 unordered_map<int, unordered_set> Retrieve_children(Query_tree QTree){

@@ -22,10 +22,25 @@ int main (int argc, char **argv){
 	cout << "# nodes: " << G.n << ".  # edges: " << G.neighbors.size()/2 << endl;
 	gettimeofday(&start,NULL);
 	Query_tree testQTree;
+
 	testQTree.patterns = {2,2,2,1,1}; //this is node pattern. post-order 22211. edge has a label too.
 	testQTree.nodes_ordered = {10698, 10388, 11807, 1, 2}; //non-terminal nodes assigned different values for edge distinction
+	testQTree.map2leftcdr[2]=10698;
+	testQTree.map2leftcdr[1]=10388;
+	testQTree.map2rightcdr[2]=1;
+	testQTree.map2rightcdr[1]=11807;
+	testQTree.map2parent[10698]=2;
+	testQTree.map2parent[1]=2;
+    testQTree.map2parent[10388]=1;
+	testQTree.map2parent[11807]=1;
 	testQTree.terminals_index = {0, 1, 2};
 	testQTree.junction_index = {3, 4};
+	for (int i=0; i<testQTree.nodes_ordered.size(); i++){
+        testQTree.map2patthern.insert(make_pair(testQTree.nodes_ordered[i], testQTree.patterns[i]));
+	}
+	for (int i=0; i<testQTree.junction_index.size();i++){
+        testQTree.junctions.push_back(testQTree.nodes_ordered[testQTree.junction_index[i]]);
+	}
 //	testQTree.Edges_types = { {make_pair(10698, 2), 1}, {make_pair(2, 1), 2}, {make_pair(1, 10388), 1}, {make_pair(1, 11807), 1} };
     QueryResultTrees qResult = AStar_Prophet_Tree(G,testQTree,pTime2);
     return 0;
