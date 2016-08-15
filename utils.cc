@@ -136,16 +136,20 @@ vector<unordered_set<int>> create_Prophet(const graph_t& g, Query query, double&
 	return layers;
 }
 
-//TODO
-vector<unordered_map<int, float>> create_Prophet_Heuristics_generalized(const graph_t&g, GeneralizedQuery query, double& timeUsed){
+//Done1: assign weight accumulation to tree nodes
+vector<std::unordered_map<int, float>> create_Prophet_Heuristics_generalized(const graph_t&g, GeneralizedQuery Gquery, double& timeUsed, unordered_map<int, float>& leftvalue, unordered_map<int, float>& rightvalue){
 	struct timeval start, end;
 	gettimeofday(&start, NULL);
-	int midLayer = query.pattern.size()/2 +1;//half forward and halp backward. And they meet and terminate at the same layer.
+	//int midLayer = Gquery.pattern.size()/2 +1;
+	int midLayer = Gquery.pos_junction + 1; //src to junction forward and junction to tgt backward. And they meet and terminate at the same layer junction.
 	vector<unordered_map<int, float> > layers;
-	/*
-	layers.reserve(query.pattern.size());
+
+	layers.reserve(Gquery.pattern.size());
 	unordered_map<int, float> top;
-	top[query.src] = MAX_WEIGHT;
+	//terminal nodes has already been assigned to 0 by default! No need to initialize again.
+
+	for (auto it = Gquery.srcs.begin(); it != Gquery.srcs.end(); ++it)
+        top[it->first] = it->second;
 	layers.push_back(top);
 	for(int i=1; i<midLayer; i++){
 		unordered_map<int, float> lastLayer = layers[i-1];//upper layer.
@@ -154,18 +158,21 @@ vector<unordered_map<int, float>> create_Prophet_Heuristics_generalized(const gr
 			int node = it->first;
 			for(int j=0; j<g.degree[node]; j++){//visit the neighbors of each node.
 				int neigh = g.neighbors[g.nodes[node]+j];
-				if(g.typeMap[neigh] == query.pattern[i])
+				int observe_type = g.typeMap[neigh];
+	//			cout<<"current node is "<<node<<" ,neighbor node name is "<<neigh<< "this neighbor type is "<<observe_type<<endl;
+				if(g.typeMap[neigh] == Gquery.pattern[i])
 					newLayer[neigh] = MAX_WEIGHT;
 			}
 		}
 		layers.push_back(newLayer);
 	}//meet at midLayer-1
 	unordered_map<int, float> bottom;
-	for(int i=midLayer; i<query.pattern.size()-1; i++)
+	for(int i=midLayer; i<Gquery.pattern.size()-1; i++)
 		layers.push_back(bottom);//empty.
-	bottom[query.tgt] = 0;
+	for (auto it = Gquery.tgts.begin(); it != Gquery.tgts.end(); ++it)
+        bottom[it->first] = it->second; //bottom[query.tgt] = 0;
 	layers.push_back(bottom);
-	for(int i=query.pattern.size()-2; i>=midLayer-1; i--){
+	for(int i=Gquery.pattern.size()-2; i>=midLayer-1; i--){ //keep propergate from the tgt side till midlayer -1
 		unordered_map<int, float> belowLayer = layers[i+1];
 		unordered_map<int, float> newLayer;
 		for(unordered_map<int, float>::iterator it=belowLayer.begin(); it!=belowLayer.end(); it++){
@@ -173,8 +180,8 @@ vector<unordered_map<int, float>> create_Prophet_Heuristics_generalized(const gr
 			float pathWgt = it->second;
 			for(int j=0; j<g.degree[node]; j++){
 				int neigh = g.neighbors[g.nodes[node]+j];
-				float wgt = calcWgt(g.wgts[g.nodes[node]+j], query.time);
-				if(g.typeMap[neigh]==query.pattern[i]){
+				float wgt = calcWgt(g.wgts[g.nodes[node]+j], Gquery.time);
+				if(g.typeMap[neigh]==Gquery.pattern[i]){
 					if(newLayer.count(neigh) == 0)
 						newLayer[neigh] = pathWgt + wgt;
 					else
@@ -195,7 +202,7 @@ vector<unordered_map<int, float>> create_Prophet_Heuristics_generalized(const gr
 			layers[i] = newLayer;
 
 	}
-	for(int i=midLayer; i<query.pattern.size()-1; i++){
+	for(int i=midLayer; i<Gquery.pattern.size()-1; i++){
                 unordered_map<int, float> lastLayer = layers[i-1];//upper layer.
                 unordered_map<int, float> newLayer;
                 for(unordered_map<int, float>::iterator it=lastLayer.begin(); it!=lastLayer.end(); it++){//expanding each node on last layer.
@@ -208,15 +215,17 @@ vector<unordered_map<int, float>> create_Prophet_Heuristics_generalized(const gr
                 }
                 layers[i] = newLayer;
         }
-	for(int i=midLayer-2; i>0; i--){//i=0 not necessary.
-                unordered_map<int, float> belowLayer = layers[i+1];
+//	for(int i=midLayer-2; i>0; i--){
+    for(int i=1; i<midLayer -1 ; i++){
+            //A*heuristic modification:: change direction of this part, propergate from left side, till midlayer-2, later add at meet point midlayer -1
+                unordered_map<int, float> belowLayer = layers[i-1];
                 unordered_map<int, float> newLayer;
                 for(unordered_map<int, float>::iterator it=belowLayer.begin(); it!=belowLayer.end(); it++){
                         int node = it->first;
 			float pathWgt = it->second;
                         for(int j=0; j<g.degree[node]; j++){
                                 int neigh = g.neighbors[g.nodes[node]+j];
-				float wgt = calcWgt(g.wgts[g.nodes[node]+j], query.time);
+				float wgt = calcWgt(g.wgts[g.nodes[node]+j], Gquery.time);
                                 if(layers[i].count(neigh)>0){//pattern checking not needed.
 					if(newLayer.count(neigh) == 0)
                                                 newLayer[neigh] = pathWgt + wgt;
@@ -228,10 +237,73 @@ vector<unordered_map<int, float>> create_Prophet_Heuristics_generalized(const gr
                         }
                 }
 		layers[i] = newLayer;
+
 	}
+
+
+	//meet in the junction node --i =midlayer-1
+	int junction = midLayer -1;
+	unordered_map<int, float> left_belowLayer = layers[junction-1];
+	unordered_map<int, float> right_belowLayer = layers[junction+1];
+	unordered_map<int, float> meetLayer;
+	//unordered_map<int, float> leftvalue;
+	//unordered_map<int, float> rightvalue;
+
+
+
+	for(unordered_map<int, float>::iterator it=left_belowLayer.begin(); it!=left_belowLayer.end(); it++){
+                        int node = it->first;
+                        float pathWgt = it->second;
+
+                        for(int j=0; j<g.degree[node]; j++){
+                                int neigh = g.neighbors[g.nodes[node]+j];
+                                float wgt = calcWgt(g.wgts[g.nodes[node]+j], Gquery.time);
+                                if(layers[junction].count(neigh)>0){//pattern checking not needed.
+					                    if(leftvalue.count(neigh) == 0)
+                                                leftvalue[neigh] = pathWgt + wgt;
+                                        else
+                                                 leftvalue[neigh]= min(leftvalue.at(neigh), pathWgt+wgt);
+                                }
+                        }
+	}
+
+    for(unordered_map<int, float>::iterator it=right_belowLayer.begin(); it!=right_belowLayer.end(); it++){
+                        int node = it->first;
+                        float pathWgt = it->second;
+
+                        for(int j=0; j<g.degree[node]; j++){
+                                int neigh = g.neighbors[g.nodes[node]+j];
+                                float wgt = calcWgt(g.wgts[g.nodes[node]+j], Gquery.time);
+                                if(layers[junction].count(neigh)>0){//pattern checking not needed.
+					                    if(rightvalue.count(neigh) == 0)
+                                                rightvalue[neigh] = pathWgt + wgt;
+                                        else
+                                                 rightvalue[neigh]= min(rightvalue.at(neigh), pathWgt+wgt);
+                                }
+                        }
+    }
+
+
+    for (unordered_map<int, float>::iterator it=leftvalue.begin(); it!=leftvalue.end(); it++){
+        //leftvalue.size = rightvalue.size = number of candidate in the middle layer. add for each of them.
+        int node = it-> first;
+        meetLayer[node] = leftvalue[node] + rightvalue[node];
+
+    }
+
+
+
+	layers[junction] = meetLayer;
+
+
+
+
+
+
 	gettimeofday(&end, NULL);
 	timeUsed = (end.tv_sec + double(end.tv_usec)/1000000) - (start.tv_sec + double(start.tv_usec)/1000000);
-	*/
+
+
 	return layers;
 }
 
@@ -349,7 +421,7 @@ vector<Path> pq2vec(priority_queue<Path, std::vector<Path>, comparator2> candida
 
 vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree){ //only decompose the pattern, ititialize source and target as empty
     vector<GeneralizedQuery> decomposed_queries;
-    GeneralizedQuery generalized_query;
+
     cout<< "decomposing tree query..." << endl;
 
     //starting a new decomposed path.
@@ -363,7 +435,7 @@ vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree){ //only decompose 
     }
     for(int i=0; i<(QTree.junction_index.size()); i++){
             //for each junction node, find the src and tgt and delete them from non_touched_JT
-
+            GeneralizedQuery generalized_query;
             vector <int> nodes_pattern;
             vector <int> nodes_temp; //for finding the position of junction
             int current_junction_pos = QTree.junction_index[i];
@@ -430,18 +502,8 @@ vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree){ //only decompose 
             edge_included.push_back(nodes_pattern[i]);
         }
         generalized_query.pattern = edge_included;
-*/       //update the decomposed query pattern done.
-
-
-
-
-/*todo
-unordered_map<int, unordered_set> Retrieve_children(Query_tree QTree){
-    int current_node;
-    unordered_set children_set;
-
-
-
-}
-
 */
+
+
+
+

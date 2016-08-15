@@ -9,7 +9,7 @@ int getCurrentRSS();//in kilobytes
 bool contain_loop(std::vector<int> &high, std::vector<int> &low);
 std::vector<std::unordered_set<int>> create_Prophet(const graph_t& g, Query query, double& timeUsed);
 std::vector<std::unordered_map<int, float>> create_Prophet_Heuristics(const graph_t&g, Query query, double& timeUsed);
-std::vector<std::unordered_map<int, float>> create_Prophet_Heuristics_generalized(const graph_t&g, GeneralizedQuery query, double& timeUsed);
+std::vector<std::unordered_map<int, float>>create_Prophet_Heuristics_generalized(const graph_t&g, GeneralizedQuery query, double& timeUsed, std::unordered_map<int, float>& leftvalue, std::unordered_map<int, float>& rightvalue );
 Path createPath(float wgt, std::vector<int> path);
 std::vector<Path> pq2vec(std::priority_queue<Path, std::vector<Path>, comparator2> candidates);
 std::vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree);
@@ -43,10 +43,11 @@ QueryResult bidir_Dijkstra(const graph_t& g, PrunedLandmarkLabeling<> &pll, Quer
 */
 QueryResult AStar_Prophet(const graph_t& g, Query query, double& timeUsed);
 QueryResultTrees AStar_Prophet_Tree(const graph_t& g, Query_tree query, double& timeUsed);
-
+Instance_Tree Instance_Tree_Insert(Instance_Tree subtree, int curId, int neigh, bool on_left);
 QueryResult Bidirec_AStar_Prophet(const graph_t& g, Query query);
 QueryResult AStar_Prophet_Explicit(const graph_t& g, Query query);
 QueryResult AStar_Original(const graph_t& g, PrunedLandmarkLabeling<> &pll, Query query, bool oracle);
 QueryResult AStar_Original_OPT(const graph_t& g, Query query);
 float getHeuristicValue(const graph_t& g, Query query, int depth, int curNode);
 float getHeuristicValueTree(const graph_t& g, Query_tree query_tree, int depth, int curNode);
+void Expand_current(const graph_t& g, Query_tree querytree, vector <int> pre_order_patterns, int& curId, PQEntity_AStar& curNode,Instance_Tree subtree, int& total,unordered_map<int, unordered_map<int, float>> node2layers, unordered_map<int, int> vertex2node,std::priority_queue<PQEntity_AStar, std::vector<PQEntity_AStar>, comparator_AStar>& frontier);

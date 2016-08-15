@@ -22,6 +22,7 @@
 #include <limits.h>
 #include <float.h>
 #include <time.h>
+#include <tuple>
 #include <string.h>
 #include <math.h>
 #include <assert.h>
@@ -76,6 +77,7 @@ typedef struct Query_tree{
     std::vector<int> junctions;
 	std::vector<int> patterns;//the type of nodes
 
+    float time;
 //	std::map<Edge, int> Edges_types; //map a given edge to the type
 
 
@@ -96,10 +98,16 @@ typedef struct Path{
 }Path;
 
 typedef struct Instance_Tree{
-	std::vector<int> nodeIds;
-	std::vector<int> terminals_index;
-    std::vector<int> junction_index;
+
+    std::unordered_map<int, int> map2leftcdr;
+	std::unordered_map<int, int> map2rightcdr;
+	std::unordered_map<int, int> map2parent;
+
+	std::unordered_set<int> nodes;
+    //std::unordered_map<int> junctions;
+
 	float wgt;
+
 }Instance_Tree;
 
 
