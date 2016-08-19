@@ -50,4 +50,6 @@ QueryResult AStar_Original(const graph_t& g, PrunedLandmarkLabeling<> &pll, Quer
 QueryResult AStar_Original_OPT(const graph_t& g, Query query);
 float getHeuristicValue(const graph_t& g, Query query, int depth, int curNode);
 float getHeuristicValueTree(const graph_t& g, Query_tree query_tree, int depth, int curNode);
-void Expand_current(const graph_t& g, Query_tree querytree, vector <int> pre_order_patterns, int& curId, PQEntity_AStar& curNode,Instance_Tree subtree, int& total,unordered_map<int, unordered_map<int, float>> node2layers, unordered_map<int, int> vertex2node,std::priority_queue<PQEntity_AStar, std::vector<PQEntity_AStar>, comparator_AStar>& frontier);
+void Expand_current(const graph_t& g, Query_tree querytree, std::vector <int> pre_order_patterns, int& curId,
+                    PQEntity_AStar_Tree& curNode,Instance_Tree subtree, int& total,std::unordered_map<int, std::unordered_map<int, float>> node2layers,
+                    std::unordered_map<int, int> vertex2node,std::priority_queue<PQEntity_AStar_Tree, std::vector<PQEntity_AStar_Tree>, comparator_AStar_Tree>& frontier);

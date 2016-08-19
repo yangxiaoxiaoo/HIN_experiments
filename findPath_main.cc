@@ -71,10 +71,22 @@ int main (int argc, char **argv){
 	for (int i=0; i<testQTree.junction_index.size();i++){
         testQTree.junctions.push_back(testQTree.nodes_ordered[testQTree.junction_index[i]]);
 	}
+    for (int i=0; i<testQTree.terminals_index.size();i++){
+        testQTree.terminals.push_back(testQTree.nodes_ordered[testQTree.terminals_index[i]]);
+	}
 //	testQTree.Edges_types = { {make_pair(10698, 2), 1}, {make_pair(2, 1), 2}, {make_pair(1, 10388), 1}, {make_pair(1, 11807), 1} };
     QueryResultTrees qResult = AStar_Prophet_Tree(G,testQTree,pTime2);
 
 
+    if(qResult.trees.size()>0){
+        for (int i=0; i<qResult.trees.size(); i++){
+                cout  <<i<<" th lightest tree has weight: "<< qResult.trees[i].wgt << "\t" << qResult.mem << "\t" << qResult.totalTrees << endl;
+        }
+    }
+
+	else
+        cout << -1 << "\t" << qResult.mem << "\t" << qResult.totalTrees << endl;
+	cout << "#################################################"<< endl;
 
     return 0;
 }

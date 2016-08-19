@@ -29,7 +29,7 @@
 #include <unistd.h>
 #include <map>
 #define MAX_WEIGHT 1000000
-#define TOP_K 2
+#define TOP_K 5
 #define WITH_ORACLE true
 #define WITHOUT_ORACLE false
 typedef struct Query{
@@ -50,6 +50,8 @@ typedef struct GeneralizedQuery{ //generalized, reusable query allowing src and 
 }GeneralizedQuery;
 
 typedef std::pair<int, int> Edge;
+
+
 
 /*
 template <>
@@ -75,6 +77,7 @@ typedef struct Query_tree{
     std::vector<int> terminals_index; //the position of n terminals in the ordered nodes
     std::vector<int> junction_index; //the position of (n-1) junction nodes
     std::vector<int> junctions;
+    std::vector<int> terminals;
 	std::vector<int> patterns;//the type of nodes
 
     float time;
@@ -109,6 +112,39 @@ typedef struct Instance_Tree{
 	float wgt;
 
 }Instance_Tree;
+
+
+typedef struct PQEntity_AStar{
+        int nodeIdx;
+        float wgt;
+	float key;
+        std::vector<int> path;
+}PQEntity_AStar;
+
+//comparator for the priority queue in dijkstra algorithm.
+struct comparator_AStar{
+	bool operator()(PQEntity_AStar p1, PQEntity_AStar p2){
+		return p1.key > p2.key;
+	}
+};
+
+
+//adaptation for binary trees
+typedef struct PQEntity_AStar_Tree{
+        int nodeIdx;
+        float wgt;
+	float key;
+	bool junction;
+       // std::vector<int> subtree;
+       Instance_Tree subtree;
+}PQEntity_AStar_Tree;
+
+//comparator for the priority queue in dijkstra algorithm.
+struct comparator_AStar_Tree{
+	bool operator()(PQEntity_AStar_Tree p1, PQEntity_AStar_Tree p2){
+		return p1.key > p2.key;
+	}
+};
 
 
 //comparator for Path.
