@@ -419,13 +419,14 @@ vector<Path> pq2vec(priority_queue<Path, std::vector<Path>, comparator2> candida
 
 }
 
+//Decomposes the tree pattern into path patterns and also computes the order in which the path patterns should be processed
 vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree){ //only decompose the pattern, ititialize source and target as empty
     vector<GeneralizedQuery> decomposed_queries;
 
     cout<< "decomposing tree query..." << endl;
 
     //starting a new decomposed path.
-
+    //Non_touched_JT stores the terminals and junctions in the post-order way. In a pre-order traversal, for a junction (not a terminal) at location i in the vector, the source and the target of the corresponding path is at location i-1 and i-2
     vector <int> non_touched_JT; //terminals and juctions that haven't been put into decomposed paths yet
     for(int i=0; i<(QTree.nodes_ordered.size()); i++){
             if((find(QTree.junction_index.begin(), QTree.junction_index.end(), i)!= QTree.junction_index.end())

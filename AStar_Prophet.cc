@@ -23,6 +23,7 @@ PQEntity_AStar_Tree createPQEntity_AStar_Tree(int id, float wgt, float key, Inst
 	return entity;
 }
 
+//Vertex current id is in the subtree expanded so far. And now we are inserting neighbor vertex. The boolean on_left captures whether ot not the neighbor is a left child
 Instance_Tree Instance_Tree_Insert(Instance_Tree subtree, int curId, int neigh, bool on_left){
     if (on_left==true){
         subtree.map2leftcdr[curId] = neigh;
@@ -102,7 +103,7 @@ QueryResult AStar_Prophet(const graph_t& g, Query query, double& timeUsed){
         return qResult;
 }
 
-
+//A step forward in A* -- Three cases depending on whether the nodes are terminals or junctions
 void Expand_current(const graph_t& g, Query_tree querytree, vector <int> pre_order_patterns, int& curId, PQEntity_AStar_Tree& curNode,
                Instance_Tree subtree, int& total,unordered_map<int, unordered_map<int, float>> node2layers, unordered_map<int, int> vertex2node,
                std::priority_queue<PQEntity_AStar_Tree, std::vector<PQEntity_AStar_Tree>, comparator_AStar_Tree>& frontier){
@@ -195,13 +196,14 @@ void Expand_current(const graph_t& g, Query_tree querytree, vector <int> pre_ord
 }
 
 
-
+//Computes a prophet graph and runs A* to return k-lightest matching instances
 QueryResultTrees AStar_Prophet_Tree(const graph_t& g, Query_tree querytree, double& timeUsed){
 	int iterationnum = querytree.patterns.size()-1;
         float minWgt = MAX_WEIGHT;
         QueryResultTrees qResultTree;
 
         //check the struct invarient
+        //Check if the terminals are of the type that match the pattern requirements (in order)
         for(int i=0; i<querytree.patterns.size(); i++){
             if( (g.typeMap[querytree.nodes_ordered[querytree.terminals_index[i]]]!=querytree.patterns[querytree.terminals_index[i]])){
                 //cout << query.src << " to " << query.tgt << endl;
@@ -211,14 +213,24 @@ QueryResultTrees AStar_Prophet_Tree(const graph_t& g, Query_tree querytree, doub
                 }
         }
 
+    //Decompose the pattern (binary tree) into paths
     vector<GeneralizedQuery> decomposed_queries = decompo_Query_Tree(querytree);
+
+    //Maps a node in pattern to vertices in input graph that potentially map to it
+    //potentially implies type matches of paths to all terminals
     unordered_map<int, unordered_map<int, float>> node2layers; //candidate set with each's weight from lower level terminals. Will return this as tree prophet graph
+
+    //Every time a vertex is in the node2layers of a node, record it here. Note that a vertex may be mapped to many different nodes in the pattern.
     unordered_map<int, int> vertex2node;
+
+    //Intermediate data structures to record who is from left and who is from right to a junction node.
     unordered_map<int, float> junction_leftmap;
     unordered_map<int, float> junction_rightmap;
 
+    //for each path query (obtained by decomposition), generate candidate prophet graph
     for (int i=0; i<decomposed_queries.size(); i++){//process by the post-order
         GeneralizedQuery current_query = decomposed_queries[i];
+        //If in the path being processed now, either source or target is a junction, return the previous iteration's node2layers to initialize the values
         if (find(querytree.junctions.begin(), querytree.junctions.end(), current_query.srcs.begin()->first)!= querytree.junctions.end()){ //if src is a junction, get candidate layers from previous iteration
             current_query.srcs = node2layers[current_query.srcs.begin()->first];
         }
@@ -231,6 +243,8 @@ QueryResultTrees AStar_Prophet_Tree(const graph_t& g, Query_tree querytree, doub
         unordered_map<int, float> current_junction_leftmap;
         unordered_map<int, float> current_junction_rightmap;
 
+        //Calling path query function from Albert (which has been generalized here to handle a set of potentially matching vertices as source or target)
+        //It also computes the heuristic values in the process (value of a node2layer node key)
         layers = create_Prophet_Heuristics_generalized(g, current_query, timeUsed, current_junction_leftmap, current_junction_rightmap);//layers stores the legitimate nodes on each level. Each layer is a set.
         for (int i=0; i< layers.size(); i++){
             node2layers[current_query.nodes[i]] = layers[i];  //i-th node updated into the candidate set chart. using map--unordered map for now...
@@ -254,10 +268,13 @@ QueryResultTrees AStar_Prophet_Tree(const graph_t& g, Query_tree querytree, doub
 //at this point, each node has a heuristic weight from leaves.
 
 //TODO3: Astar--frontier motification. A* will do the propergate from top down
-
+    //A priority queue in a vector container containing elements of type PQEntity_AStar_Tree
 	std::priority_queue<PQEntity_AStar_Tree, std::vector<PQEntity_AStar_Tree>, comparator_AStar_Tree> frontier;
 	PQEntity_AStar_Tree curNode;
+	//Root is the last element of the post_order traversal of pattern tree
 	int root = querytree.nodes_ordered.back();
+
+	//for all vertices matching the root node, push them in priority queue
 	for(unordered_map<int, float>::iterator it_root=node2layers[root].begin(); it_root!=node2layers[root].end(); it_root++){
         Instance_Tree tmptree;
         tmptree.nodes.insert(it_root->first);
@@ -272,6 +289,7 @@ QueryResultTrees AStar_Prophet_Tree(const graph_t& g, Query_tree querytree, doub
     stack <int> s;
     int curId_inpattern = root;
     vector <int> pre_order_patterns;
+    //Traversing query pattern in pre-order
     while(true){
             if (pre_order_patterns.size()>= querytree.nodes_ordered.size()) break;
             while(true){
@@ -303,7 +321,7 @@ QueryResultTrees AStar_Prophet_Tree(const graph_t& g, Query_tree querytree, doub
     //now, pre_order_patterns is recording the patterns.
     //for expansion, we need to know who is the next pattern node to match.
 
-
+    //Top-down traversal in pre-order
 	while(!frontier.empty()){//each time check one element in the PQ.
 		mem = max(mem, (int)frontier.size());
 		PQEntity_AStar_Tree curNode;
@@ -323,12 +341,15 @@ QueryResultTrees AStar_Prophet_Tree(const graph_t& g, Query_tree querytree, doub
 			continue;
 		}
 		//expanding the neighbors of current node
+		//Expand the most promising path with vertices mapping the next node in the path (if it exists, but can trace back otherwise)
+		//It also updates the value of the right path when entering the junction for the first time. This update involves finding the best heuristic estimate, given that the junction vertex is fixed
         Expand_current(g, querytree, pre_order_patterns, curId, curNode, subtree,total,node2layers,vertex2node,frontier);
         //each expanding operation may change: total, frontier, curId, curNode.
 		}
 
 	qResultTree.mem = mem;
         qResultTree.totalTrees = total;
+        //Return k-lightest matching trees
         return qResultTree;
 }
 
