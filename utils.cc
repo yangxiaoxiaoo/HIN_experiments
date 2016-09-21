@@ -1,6 +1,54 @@
 #include "global.h"
 using namespace std;
 
+
+Query_tree sampleFrom(const graph_t& g, int seed_node){
+//sample a height 3 binary tree using seed_node as a root
+//if there exist terminals that satisfy, return query_tree; else return empty.
+    Query_tree QTree;
+    QTree.nodes_ordered = {9999, 0};
+    int neigh1,neigh2, neigh3, neigh4;
+    if (g.degree[seed_node] >= 2){
+        neigh1 = g.neighbors[g.nodes[seed_node]];
+        neigh2 = g.neighbors[g.nodes[seed_node]+1];
+        if (g.degree[neigh1]>= 3){
+            neigh3 = g.neighbors[g.nodes[neigh1]];
+            if (neigh3 == seed_node){
+                neigh3 = g.neighbors[g.nodes[neigh1]+1];
+                neigh4 = g.neighbors[g.nodes[neigh1]+2];
+            }
+            else{
+                neigh4 = g.neighbors[g.nodes[neigh1]+1];
+                if (neigh4 == seed_node){
+                    neigh4 = g.neighbors[g.nodes[neigh1]+2];
+                }
+            }
+            //the only case QTree sampling was correct.
+            //output a query using root -> 0, neigh1 -> 1, found 3 and 4 terminals
+
+            QTree.nodes_ordered = {neigh3, neigh4 ,1,neigh2,0}; //SEED and neigh1 anonymous, 2/3/4 as terminals
+            QTree.map2leftcdr[0]=1;
+            QTree.map2leftcdr[1]=neigh3;
+            QTree.map2rightcdr[0]=neigh2;
+            QTree.map2rightcdr[1]=neigh4;
+	        QTree.map2parent[neigh3]=1;
+	        QTree.map2parent[neigh4]=1;
+	        QTree.map2parent[1]=0;
+	        QTree.map2parent[2]=0;
+            QTree.terminals_index = {0, 1, 3};
+            QTree.junction_index = {2, 4};
+            QTree.patterns = {g.typeMap[neigh3], g.typeMap[neigh4], g.typeMap[neigh1],g.typeMap[neigh2],g.typeMap[seed_node]};
+
+        }
+    }
+    return QTree;
+}
+
+int reset_lighest_test(graph_t& g, Instance_Tree Test_T){
+//reset Test_T all weight 0.001 in graph g, for testing purpose
+    return 0;
+}
+
 void check_path_wgt(vector<Path> paths, graph_t g, Query query){
     for(int i=0; i<paths.size(); i++){
     	float wgtSum = 0;

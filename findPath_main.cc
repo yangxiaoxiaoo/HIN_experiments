@@ -7,6 +7,9 @@ using namespace std;
 //unit test main, usage: ./pro-heaps ./Enron/enron_graph.wgt.norm
 //query is specified in test main().
 
+
+
+
 int main (int argc, char **argv){
 
     char *in_fname = argv[1];
@@ -22,6 +25,7 @@ int main (int argc, char **argv){
 	cout << "# nodes: " << G.n << ".  # edges: " << G.neighbors.size()/2 << endl;
 	gettimeofday(&start,NULL);
 	Query_tree testQTree;
+	Query_tree sampledTree;
 
 //TEST CASE1: no instance maching
 /*
@@ -47,8 +51,7 @@ int main (int argc, char **argv){
 
  */
 
-
-//TEST CASE2: with instance maching
+ //TEST CASE2: with instance maching
     testQTree.patterns = {2,3,3,2,2,3}; //this is node pattern. post-order 22211. edge has a label too.
 	testQTree.nodes_ordered = {11807, 1 ,116,2,10698,3}; //non-terminal nodes assigned different values for edge distinction
 	testQTree.map2leftcdr[1]=11807;
@@ -64,6 +67,24 @@ int main (int argc, char **argv){
 	testQTree.terminals_index = {0, 2, 4};
 	testQTree.junction_index = {3, 5};
 
+    int seed_node;
+    //DBLP:
+    //std::vector<int> seed_candidate = {2151771, 2151721, 2151652, 2151623};
+    //ENRON:
+    std::vector<int> seed_candidate = {27537, 32657, 46259, 44703, 44828};
+
+    for(int i = 0; i<seed_candidate.size(); i++){
+        seed_node = seed_candidate[i];
+        cout<<"current seed is"<<seed_node<<endl;
+        sampledTree = sampleFrom(G, seed_node);
+        if (sampledTree.nodes_ordered[0]!= 9999){
+			testQTree = sampledTree;
+			std::cout<<"sampling success: found a query tree!"<<endl;
+			break;
+        }
+    }
+
+
 
 	for (int i=0; i<testQTree.nodes_ordered.size(); i++){
         testQTree.map2patthern.insert(make_pair(testQTree.nodes_ordered[i], testQTree.patterns[i]));
@@ -71,6 +92,7 @@ int main (int argc, char **argv){
 	for (int i=0; i<testQTree.junction_index.size();i++){
         testQTree.junctions.push_back(testQTree.nodes_ordered[testQTree.junction_index[i]]);
 	}
+	cout<<testQTree.junctions.size()<<endl;
     for (int i=0; i<testQTree.terminals_index.size();i++){
         testQTree.terminals.push_back(testQTree.nodes_ordered[testQTree.terminals_index[i]]);
 	}

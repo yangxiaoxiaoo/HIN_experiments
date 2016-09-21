@@ -4,6 +4,8 @@
 /*
 	utils.cc
 */
+Query_tree sampleFrom(const graph_t& g, int seed_node);
+int reset_lighest_test(graph_t& g, Instance_Tree Test_T);
 void check_path_wgt(std::vector<Path> paths, graph_t g, Query query);
 int getCurrentRSS();//in kilobytes
 bool contain_loop(std::vector<int> &high, std::vector<int> &low);
