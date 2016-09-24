@@ -80,6 +80,9 @@ int main (int argc, char **argv){
         if (sampledTree.nodes_ordered[0]!= 9999){
 			testQTree = sampledTree;
 			std::cout<<"sampling success: found a query tree!"<<endl;
+			for (int i=0; i< testQTree.nodes_ordered.size();i++){
+				cout<<testQTree.nodes_ordered[i]<<' ';
+			}
 			break;
         }
     }
