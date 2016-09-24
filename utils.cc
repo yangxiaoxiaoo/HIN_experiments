@@ -34,7 +34,7 @@ Query_tree sampleFrom(const graph_t& g, int seed_node){
 	        QTree.map2parent[neigh3]=1;
 	        QTree.map2parent[neigh4]=1;
 	        QTree.map2parent[1]=0;
-	        QTree.map2parent[2]=0;
+	        QTree.map2parent[neigh2]=0;
             QTree.terminals_index = {0, 1, 3};
             QTree.junction_index = {2, 4};
             QTree.patterns = {g.typeMap[neigh3], g.typeMap[neigh4], g.typeMap[neigh1],g.typeMap[neigh2],g.typeMap[seed_node]};
