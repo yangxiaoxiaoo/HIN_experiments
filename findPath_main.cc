@@ -71,6 +71,7 @@ int main (int argc, char **argv){
     //DBLP:
     //std::vector<int> seed_candidate = {2151771, 2151721, 2151652, 2151623};
     //ENRON:
+    /*
     std::vector<int> seed_candidate = {27537, 32657, 46259, 44703, 44828};
 
     for(int i = 0; i<seed_candidate.size(); i++){
@@ -86,6 +87,8 @@ int main (int argc, char **argv){
 			break;
         }
     }
+*/
+
 
 
 
