@@ -1,4 +1,5 @@
 #include "global.h"
+#include "algorithm"
 using namespace std;
 //Loads the graph: index should be continuous. But edge list does not need to be sorted.
 graph_t load_graph(char *fname, vector<pair<int, int>> &edge_list) {
@@ -27,6 +28,9 @@ graph_t load_graph(char *fname, vector<pair<int, int>> &edge_list) {
 			nodeNum = atoi(str1);
 //			edgeNum = atoi(str2);
 			g.typeMap.reserve(nodeNum+1);
+			std::vector<int> v0(nodeNum+1, 0);
+			g.typeMap = v0;
+
 		}
 		if(cnt > 1){
 			edgeNum += 1;
@@ -58,9 +62,14 @@ graph_t load_graph(char *fname, vector<pair<int, int>> &edge_list) {
 			n2 = atoi(sto);
 			int t1 = atoi(ntype1);
 			int t2 = atoi(ntype2);
+			//TEST passed
+			cout<<"LOAD MAP TEST " <<t1 <<" "<<t2<<endl;
 			//float wgt = atof(sweight);
 			g.typeMap[n1] = t1;
 			g.typeMap[n2] = t2;
+			for (int i= 1; i < g.typeMap.size(); i++){
+				cout<<g.typeMap[i]<<endl;
+			}
 			if(max(n1,n2) > maxId)
 				maxId = max(n1,n2);
 			if(min(n1,n2) < minId)

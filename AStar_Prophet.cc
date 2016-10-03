@@ -204,7 +204,10 @@ QueryResultTrees AStar_Prophet_Tree(const graph_t& g, Query_tree querytree, doub
 
         //check the struct invarient
         //Check if the terminals are of the type that match the pattern requirements (in order)
-        for(int i=0; i<querytree.patterns.size(); i++){
+        for(int i=0; i<querytree.terminals_index.size(); i++){
+            cout<<"TEST OUTPUT "<<g.typeMap[querytree.nodes_ordered[querytree.terminals_index[i]]]<<" & "<<querytree.patterns[querytree.terminals_index[i]]<<endl;
+            
+
             if( (g.typeMap[querytree.nodes_ordered[querytree.terminals_index[i]]]!=querytree.patterns[querytree.terminals_index[i]])){
                 //cout << query.src << " to " << query.tgt << endl;
                 //cout << g.typeMap[query.src] << " and " << g.typeMap[query.tgt] << endl;
