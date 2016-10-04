@@ -5,7 +5,7 @@ using namespace std;
 graph_t load_graph(char *fname, vector<pair<int, int>> &edge_list) {
 	graph_t g;
 	std::ifstream infile(fname, std::ios::in);
-	if (!infile) {	
+	if (!infile) {
 		std::cerr <<"can't open " << fname <<"\n";
 		assert(false);
 	}
@@ -15,8 +15,8 @@ graph_t load_graph(char *fname, vector<pair<int, int>> &edge_list) {
 	int maxlen = 100000; int cnt = 0; int chatfreq = 2000000;
 	char buf[maxlen];
 	int nodeNum = 0, edgeNum=0;//edgeNum does not matter in input file.
-	int maxId = -1, minId = 100; 
-	while(1) {	
+	int maxId = -1, minId = 100;
+	while(1) {
 		cnt += 1;
 		if ((cnt % chatfreq) == 0)
 		std::cerr <<"reading line " << cnt <<"\n";
@@ -39,7 +39,7 @@ graph_t load_graph(char *fname, vector<pair<int, int>> &edge_list) {
 			char* ntype1 = strtok(NULL, " ");
 			char* ntype2 = strtok(NULL, " ");
 			char* ntype3 = strtok(NULL, " ");
-		
+
 			memcpy(ntype1, &ntype1[1], strlen(ntype1)-2);
 			ntype1[strlen(ntype1)-2] = '\0';
 			memcpy(ntype2, &ntype2[1], strlen(ntype2)-2);
@@ -55,25 +55,26 @@ graph_t load_graph(char *fname, vector<pair<int, int>> &edge_list) {
 			    s.erase(0, pos + delimiter.length());
 			}
 			wgt.push_back(stof(s));//read the weight.
-			if (sto==NULL){	
+			if (sto==NULL){
 				std::cerr <<"file " << fname <<" problem on line " << cnt <<"\n"; exit(-1);}
 
 			n1 = atoi(sfrom);
 			n2 = atoi(sto);
 			int t1 = atoi(ntype1);
 			int t2 = atoi(ntype2);
-			//TEST passed
-			cout<<"LOAD MAP TEST " <<t1 <<" "<<t2<<endl;
+			//TEST passed oct 02
+	//		cout<<"LOAD MAP TEST " <<t1 <<" "<<t2<<endl;
 			//float wgt = atof(sweight);
 			g.typeMap[n1] = t1;
 			g.typeMap[n2] = t2;
-			for (int i= 1; i < g.typeMap.size(); i++){
-				cout<<g.typeMap[i]<<endl;
-			}
+			//TEST passes oct 02
+		//	for (int i= 1; i < g.typeMap.size(); i++){
+		//		cout<<g.typeMap[i]<<endl;
+		//	}
 			if(max(n1,n2) > maxId)
 				maxId = max(n1,n2);
 			if(min(n1,n2) < minId)
-				minId = min(n1, n2);	
+				minId = min(n1, n2);
 			edges.push_back(make_pair(make_pair(n1,n2), wgt));
 			edges.push_back(make_pair(make_pair(n2,n1), wgt));
 			edge_list.push_back(make_pair(n1, n2));
@@ -82,13 +83,13 @@ graph_t load_graph(char *fname, vector<pair<int, int>> &edge_list) {
 
   	std::sort(edges.begin(),edges.end());//edges contains each pair twice.
 	vector<pair<pair<int,int>,vector<float> > >::iterator iter = --edges.end();
-	g.n = (*iter).first.first+1;//the index of last node plus 1 is the number of nodes. 
+	g.n = (*iter).first.first+1;//the index of last node plus 1 is the number of nodes.
 	cout << "Node Number:" <<g.n << endl;
 	cout << "Edge Number:" <<edgeNum << endl;
 	cout << "Max Number id: " << maxId << "; Min Number id: " << minId << endl;
 	g.nodes.reserve(g.n);
-	g.neighbors.reserve(edges.size());//edges have been double, so it is correct. 
-	g.wgts.reserve(edges.size()); 
+	g.neighbors.reserve(edges.size());//edges have been double, so it is correct.
+	g.wgts.reserve(edges.size());
 	iter = edges.begin();
 	g.nodes.push_back(0);
 	g.neighbors.push_back((*iter).first.second);
@@ -99,12 +100,12 @@ graph_t load_graph(char *fname, vector<pair<int, int>> &edge_list) {
 		int tgt = (*iter).first.second;
 		vector<float> wgt = (*iter).second;
 		if(src!=g.nodes.size()-1){//if src is not the last node.
-			while(src != g.nodes.size()-1)//this is to fix the case that some node ids are not strictly continuous. e.g 1, 3, 4. 
-				g.nodes.push_back(g.neighbors.size());//point to the first node of neighborhood. 
+			while(src != g.nodes.size()-1)//this is to fix the case that some node ids are not strictly continuous. e.g 1, 3, 4.
+				g.nodes.push_back(g.neighbors.size());//point to the first node of neighborhood.
 			g.neighbors.push_back(tgt);
 			g.wgts.push_back(wgt);
 		}
-		else if(tgt!=g.neighbors[g.neighbors.size()-1]){//avoid repeating edges. But self-loop is allowed.  
+		else if(tgt!=g.neighbors[g.neighbors.size()-1]){//avoid repeating edges. But self-loop is allowed.
 			g.neighbors.push_back(tgt);
 			g.wgts.push_back(wgt);
 		}

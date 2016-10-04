@@ -27,45 +27,27 @@ int main (int argc, char **argv){
 	Query_tree testQTree;
 	Query_tree sampledTree;
 
-//TEST CASE1: no instance maching
+
+	 //TEST CASE0 PASSED.
+ // with instance maching
 /*
-	testQTree.patterns = {2,2,2,3,1}; //this is node pattern. post-order 22211. edge has a label too.
-	testQTree.nodes_ordered = {10698, 10388, 11807, 1, 2}; //non-terminal nodes assigned different values for edge distinction
-	testQTree.map2leftcdr[2]=10698;
-	testQTree.map2leftcdr[1]=10388;
-	testQTree.map2rightcdr[2]=1;
-	testQTree.map2rightcdr[1]=11807;
-	testQTree.map2parent[10698]=2;
-	testQTree.map2parent[1]=2;
-    testQTree.map2parent[10388]=1;
-	testQTree.map2parent[11807]=1;
-	testQTree.terminals_index = {0, 1, 2};
-	testQTree.junction_index = {3, 4};
-	for (int i=0; i<testQTree.nodes_ordered.size(); i++){
-        testQTree.map2patthern.insert(make_pair(testQTree.nodes_ordered[i], testQTree.patterns[i]));
-	}
-	for (int i=0; i<testQTree.junction_index.size();i++){
-        testQTree.junctions.push_back(testQTree.nodes_ordered[testQTree.junction_index[i]]);
-	}
-    QueryResultTrees qResult = AStar_Prophet_Tree(G,testQTree,pTime2);
-
- */
-
- //TEST CASE2: with instance maching
     testQTree.patterns = {0,1,1}; //this is node pattern. post-order 22211. edge has a label too.
-	testQTree.nodes_ordered = {0,5,1}; //non-terminal nodes assigned different values for edge distinction
+	testQTree.nodes_ordered = {0,1,5}; //non-terminal nodes assigned different values for edge distinction
 	testQTree.map2leftcdr[5]=0;
 	testQTree.map2rightcdr[5]=1;
 	testQTree.map2parent[0]=5;
 	testQTree.map2parent[1]=5;
-	testQTree.terminals_index = {0, 2};
-	testQTree.junction_index = {1};
+	testQTree.terminals_index = {0, 1};
+	testQTree.junction_index = {2};
 
-    //int seed_node;
-    //DBLP:
-    //std::vector<int> seed_candidate = {2151771, 2151721, 2151652, 2151623};
-    //ENRON:
-    /*
+*/
+
+//TEST CASE 1, 2: Random select a seed and grow a tree out from there.
+int seed_node;
+//TEST CASE1 - ENRON:
+//std::vector<int> seed_candidate = {2151771, 2151721, 2151652, 2151623};
+
+//TEST CASE2 - DBLP:
     std::vector<int> seed_candidate = {27537, 32657, 46259, 44703, 44828};
 
     for(int i = 0; i<seed_candidate.size(); i++){
@@ -81,7 +63,7 @@ int main (int argc, char **argv){
 			break;
         }
     }
-*/
+
 
 
 

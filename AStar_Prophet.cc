@@ -113,11 +113,14 @@ void Expand_current(const graph_t& g, Query_tree querytree, vector <int> pre_ord
 		if (find(querytree.junctions.begin(),querytree.junctions.end(), curId_inpattern) == querytree.junctions.end()){
             //curId is not a junction, find the only child
             if (find(querytree.terminals.begin(),querytree.terminals.end(), curId_inpattern) != querytree.terminals.end()){//--curId_inpattern is a terminal
-                int next_id_pattern = *(find(pre_order_patterns.begin(), pre_order_patterns.end(), curId_inpattern)++); //curId_impattern's next one in pre_order_patterns
+                int next_id_pattern = *(find(pre_order_patterns.begin(), pre_order_patterns.end(), curId_inpattern)+1); //curId_impattern's next one in pre_order_patterns, going to traverse him!
+                cout << "next id I want to add is"<<next_id_pattern<<endl;
                 int old_parent; //old parent is a VERTEX id
                 for (auto it = subtree.nodes.begin(); it!= subtree.nodes.end(); ++it){//for node in subtree.nodes:
                     int node = *it;
-                    if (vertex2node[node] == querytree.map2parent[next_id_pattern]){
+                    if (vertex2node.find(node)->second == querytree.map2parent.find(next_id_pattern)->second){
+                    cout<<"test on "<<vertex2node.find(node)->second<<" == "<<querytree.map2parent.find(next_id_pattern)->second<<endl;
+
                         old_parent = node;
                     }
                 }
@@ -125,12 +128,17 @@ void Expand_current(const graph_t& g, Query_tree querytree, vector <int> pre_ord
                 for(int i=0; i<g.degree[old_parent]; i++){
                     int neigh = g.neighbors[g.nodes[old_parent]+i];//neighbor id.
                     unordered_map<int, float>::iterator found = node2layers[next_id_pattern].find(neigh);
-                    float edgwgt = calcWgt(g.wgts[g.nodes[old_parent]+i], querytree.time);
-                    if( found != node2layers[next_id_pattern].end() && find(subtree.nodes.begin(), subtree.nodes.end(), neigh) == subtree.nodes.end() && edgwgt+curNode.wgt<MAX_WEIGHT){
-                        //append this neigh to the subtree at the right place
-                        Instance_Tree new_subtree = Instance_Tree_Insert(subtree, old_parent, neigh, on_left); //insert neigh to oldparent's right
-                        frontier.push(createPQEntity_AStar_Tree(neigh, edgwgt+curNode.wgt, edgwgt+curNode.wgt+found->second, new_subtree));
-                        total += 1;
+                    if(found!= node2layers[next_id_pattern].end()){ //if neigh right type
+                        //TEST print all neighs
+                       // cout<<"??"<<found->first <<"-> " <<found->second<<endl;
+
+                        float edgwgt = calcWgt(g.wgts[g.nodes[old_parent]+i], querytree.time);
+                        if(find(subtree.nodes.begin(), subtree.nodes.end(), neigh) == subtree.nodes.end() &&edgwgt+curNode.wgt<MAX_WEIGHT ){//three cond: found neigh in this layer; neigh not already in subtree;
+                            //append this neigh to the subtree at the right place
+                            Instance_Tree new_subtree = Instance_Tree_Insert(subtree, old_parent, neigh, on_left); //insert neigh to oldparent's right
+                            frontier.push(createPQEntity_AStar_Tree(neigh, edgwgt+curNode.wgt, edgwgt+curNode.wgt+found->second, new_subtree));
+                            total += 1;
+                        }
                     }
                 }
 
@@ -206,7 +214,7 @@ QueryResultTrees AStar_Prophet_Tree(const graph_t& g, Query_tree querytree, doub
         //Check if the terminals are of the type that match the pattern requirements (in order)
         for(int i=0; i<querytree.terminals_index.size(); i++){
             cout<<"TEST OUTPUT "<<g.typeMap[querytree.nodes_ordered[querytree.terminals_index[i]]]<<" & "<<querytree.patterns[querytree.terminals_index[i]]<<endl;
-            
+
 
             if( (g.typeMap[querytree.nodes_ordered[querytree.terminals_index[i]]]!=querytree.patterns[querytree.terminals_index[i]])){
                 //cout << query.src << " to " << query.tgt << endl;
