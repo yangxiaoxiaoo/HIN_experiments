@@ -5,6 +5,7 @@
 	utils.cc
 */
 Query_tree sampleFrom(const graph_t& g, int seed_node);
+Query Transform_2line(const graph_t& g, Query_tree testQTree, int transseed);
 int reset_lighest_test(graph_t& g, Instance_Tree Test_T);
 void check_path_wgt(std::vector<Path> paths, graph_t g, Query query);
 int getCurrentRSS();//in kilobytes
@@ -16,6 +17,7 @@ Path createPath(float wgt, std::vector<int> path);
 std::vector<Path> pq2vec(std::priority_queue<Path, std::vector<Path>, comparator2> candidates);
 std::vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree);
 std::unordered_map<int, std::unordered_set<int>> Retrieve_children(Query_tree QTree);
+
 /*
 	io.cc
 */

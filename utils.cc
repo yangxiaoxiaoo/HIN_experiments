@@ -8,6 +8,9 @@ Query_tree sampleFrom(const graph_t& g, int seed_node){
     Query_tree QTree;
     QTree.nodes_ordered = {9999, 0};
     int neigh1,neigh2, neigh3, neigh4;
+	if (seed_node >= g.degree.size()){//seed_node not in graph
+		return QTree;
+	}
     if (g.degree[seed_node] >= 2){
         neigh1 = g.neighbors[g.nodes[seed_node]];
         neigh2 = g.neighbors[g.nodes[seed_node]+1];
@@ -43,6 +46,80 @@ Query_tree sampleFrom(const graph_t& g, int seed_node){
     }
     return QTree;
 }
+
+Query Transform_2line(const graph_t& g, Query_tree testQTree, int transseed){
+//only works for a seed sampled tree.
+    Query TransQuery;
+    int len = testQTree.nodes_ordered.size();
+    int src = testQTree.terminals[0];
+    int tgt;
+    //first traverse from the terminal to root
+    std::vector<int> nodes;
+    std::vector<int> pattern;
+    int curNode=src;
+    nodes.push_back(src);
+    int root = testQTree.nodes_ordered.back();
+    while(curNode != root){
+        curNode = testQTree.map2parent[curNode];
+        nodes.push_back(curNode);
+    //last push is root.
+    }
+    nodes.pop_back(); //replacing abstract root with real used seed.
+    nodes.push_back(transseed);
+    curNode = transseed;
+
+    if (nodes.size()==len) { //already a path
+        tgt = nodes.back();
+            }
+    else{//add more node to extend to the same size
+        while(nodes.size()<len){
+            //first iter: curNode==root+1;
+            //end iter: nodes.size is enough
+            int old_node = curNode;
+            for(int i=0; i<g.degree[curNode]; i++){
+                    int neigh = g.neighbors[g.nodes[curNode]+i];
+                    if (find(nodes.begin(), nodes.end(), neigh)==nodes.end()){ //neigh not in nodes:
+                        curNode = neigh;
+                        nodes.push_back(curNode);
+                        break; //only need one like this
+                    }
+
+            }
+            if(curNode == old_node){//after iterating all neighbors, if still no good neigh,
+                cout<<"***************Error!! Tree to path extention failed!"<<endl;
+                break;
+            }
+
+        }
+
+    }
+    //test if finished correctly by size:
+    if (nodes.size() == len){
+
+        for(int i = 0; i<nodes.size();i++){
+            if (find(testQTree.nodes_ordered.begin(), testQTree.nodes_ordered.end(), nodes[i]) != testQTree.nodes_ordered.end()){ //already in qtree, can be a unknown node not in g
+                int type;
+                int index = find(testQTree.nodes_ordered.begin(), testQTree.nodes_ordered.end(), nodes[i]) - testQTree.nodes_ordered.begin();
+                type = testQTree.patterns[index];
+                pattern.push_back(type);
+            }
+            else //expanded from root, is a node in g. ___given that root was seeded a SEED in G!! only works for a seed sampled tree.
+            pattern.push_back(g.typeMap[nodes[i]]);
+        }
+        TransQuery.src = src;
+        TransQuery.tgt = nodes.back();
+        TransQuery.time = testQTree.time;
+        TransQuery.pattern = pattern;
+
+    }
+    else{
+        cout<<"***Error!! Tree to path extention failed!"<<nodes.size()<< " != "<< len<<endl;
+    }
+    return TransQuery;
+
+
+}
+
 
 int reset_lighest_test(graph_t& g, Instance_Tree Test_T){
 //reset Test_T all weight 0.001 in graph g, for testing purpose

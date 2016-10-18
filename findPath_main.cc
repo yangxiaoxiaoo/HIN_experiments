@@ -15,7 +15,7 @@ int main (int argc, char **argv){
     char *in_fname = argv[1];
 	double timeDiff = 0.0;
 	double pTime1 = 0, pTime2 = 0;//time for establishing prophet graph.
-	struct timeval start_before_load,start, time1, time2, startQuery, endQuery;
+	struct timeval start_before_load,start, time1, time2, time3, time4, startQuery, endQuery;
 	gettimeofday(&start_before_load,NULL);
 
 	PrunedLandmarkLabeling<> pll;
@@ -30,7 +30,8 @@ int main (int argc, char **argv){
 
 	 //TEST CASE0 PASSED.
  // with instance maching
-/*
+ /*
+
     testQTree.patterns = {0,1,1}; //this is node pattern. post-order 22211. edge has a label too.
 	testQTree.nodes_ordered = {0,1,5}; //non-terminal nodes assigned different values for edge distinction
 	testQTree.map2leftcdr[5]=0;
@@ -43,12 +44,16 @@ int main (int argc, char **argv){
 */
 
 //TEST CASE 1, 2: Random select a seed and grow a tree out from there.
-int seed_node;
-//TEST CASE1 - ENRON:
+int seed_node = 0;
+int trans_seed = 0;
+//TEST CASE1 - DBLP:
 //std::vector<int> seed_candidate = {2151771, 2151721, 2151652, 2151623};
 
-//TEST CASE2 - DBLP:
+//TEST CASE2 - ENRON:
     std::vector<int> seed_candidate = {27537, 32657, 46259, 44703, 44828};
+
+//TEST 3 - CLOUD:
+//	std::vector<int> seed_candidate = {0, 1, 4, 7, 11,14};
 
     for(int i = 0; i<seed_candidate.size(); i++){
         seed_node = seed_candidate[i];
@@ -56,6 +61,7 @@ int seed_node;
         sampledTree = sampleFrom(G, seed_node);
         if (sampledTree.nodes_ordered[0]!= 9999){
 			testQTree = sampledTree;
+			trans_seed = seed_node;
 			std::cout<<"sampling success: found a query tree!"<<endl;
 			for (int i=0; i< testQTree.nodes_ordered.size();i++){
 				cout<<testQTree.nodes_ordered[i]<<' ';
@@ -78,19 +84,44 @@ int seed_node;
     for (int i=0; i<testQTree.terminals_index.size();i++){
         testQTree.terminals.push_back(testQTree.nodes_ordered[testQTree.terminals_index[i]]);
 	}
-//	testQTree.Edges_types = { {make_pair(10698, 2), 1}, {make_pair(2, 1), 2}, {make_pair(1, 10388), 1}, {make_pair(1, 11807), 1} };
-    QueryResultTrees qResult = AStar_Prophet_Tree(G,testQTree,pTime2);
 
+	gettimeofday(&time1, NULL);
+	//query the pattern
+    QueryResultTrees qResult = AStar_Prophet_Tree(G,testQTree,pTime2); //pTime2 is only useful if the weight depends on recency.
+
+    gettimeofday(&time2, NULL);
+	int numtree = qResult.numTrees; //the search space: number of trees generated
+	timeDiff = (time2.tv_sec + double(time2.tv_usec)/1000000) - (time1.tv_sec + double(time1.tv_usec)/1000000);
 
     if(qResult.trees.size()>0){
         for (int i=0; i<qResult.trees.size(); i++){
-                cout  <<i<<" th lightest tree has weight: "<< qResult.trees[i].wgt << "\t" << qResult.mem << "\t" << qResult.totalTrees << endl;
+                cout  <<i<<" th lightest tree has weight: "<< qResult.trees[i].wgt << "\t" << qResult.mem << "\t" <<numtree << "\t" << qResult.totalTrees << "\t" <<"time--"<<timeDiff<<endl;
         }
     }
 
 	else
         cout << -1 << "\t" << qResult.mem << "\t" << qResult.totalTrees << endl;
 	cout << "#################################################"<< endl;
+
+
+	/////////////////compare to: same sized path case.
+	Query testQ = Transform_2line(G, testQTree, trans_seed);
+	gettimeofday(&time3, NULL);
+	QueryResult qResult_comp = AStar_Prophet(G,testQ,pTime2);
+	gettimeofday(&time4, NULL);
+	double timeDiff2 = (time4.tv_sec + double(time4.tv_usec)/1000000) - (time3.tv_sec + double(time3.tv_usec)/1000000);
+
+	if(qResult_comp.paths.size()>0){
+        for (int i=0; i<qResult_comp.paths.size(); i++){
+                cout  <<i<<" th lightest line has weight: "<< qResult_comp.paths[i].wgt << "\t" << qResult_comp.mem << "\t" <<qResult_comp.numPaths << "\t" << qResult_comp.totalPaths << "\t" <<"time--"<<timeDiff2<<endl;
+        }
+    }
+
+	else
+        cout << -1 << "\t" << qResult_comp.mem << "\t" << qResult_comp.totalPaths << endl;
+	cout << "#################################################"<< endl;
+
+
 
     return 0;
 }
