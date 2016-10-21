@@ -26,38 +26,38 @@ Comb(leftinstance, rightinstance, backbone) returns the tree combined by the thr
 
 --- 
 PopTop(Tree): 
-if Tree is a path: 
-return PopTopPath(Tree); //base case of recursion 
-else: 
-min_weight = MAX_WEIGHT; //min weight seen so far 
-min_weight_Tree = emptytree; //the tree instance that has that min_weight 
+	if Tree is a path: 
+		return PopTopPath(Tree); //base case of recursion 
+	else: 
+		min_weight = MAX_WEIGHT; //min weight seen so far 
+		min_weight_Tree = emptytree; //the tree instance that has that min_weight 
  
-Backbone = longest path of Tree; //the pattern 
-leftTree = Tree.leftsubtree; 
-rightTree = Tree.rightsubtree; 
-pivot_backbone = PopTopPath(Backbone); //the top instance 
-while (!CheckMatch(leftinstance, pivot_backbone)){ 
-leftinstance = PopTop(leftTree) 
-} 
-while (!CheckMatch(rightinstance, pivot_backbone)){ 
-rightinstance = PopTop(rightTree) 
-} 
-min_weight = Comb_Weight(leftinstance, rightinstance, pivot_backbone); //cut off 
-min_weight_Tree = Comb(leftinstance, rightinstance, pivot_backbone); 
+		Backbone = longest path of Tree; //the pattern 
+		leftTree = Tree.leftsubtree; 
+		rightTree = Tree.rightsubtree; 
+		pivot_backbone = PopTopPath(Backbone); //the top instance 
+		while (!CheckMatch(leftinstance, pivot_backbone)){ 
+			leftinstance = PopTop(leftTree) 
+		} 
+		while (!CheckMatch(rightinstance, pivot_backbone)){ 
+			rightinstance = PopTop(rightTree) 
+		} 
+		min_weight = Comb_Weight(leftinstance, rightinstance, pivot_backbone); //cut off 
+		min_weight_Tree = Comb(leftinstance, rightinstance, pivot_backbone); 
  
-while (cur_backbone.weight < min_weight){ 
-cur_backbone = PopTopPath(backbone); 
-while((!CheckMatch(leftinstance, cur_backbone)){ 
-leftinstance = PopTop(leftTree) 
+		while (cur_backbone.weight < min_weight){ 
+			cur_backbone = PopTopPath(backbone); 
+			while((!CheckMatch(leftinstance, cur_backbone)){ 
+				leftinstance = PopTop(leftTree) 
+				} 
+			while (!CheckMatch(rightinstance, cur_backbone)){ 
+				rightinstance = PopTop(rightTree) 
+				} 
+			cur_weight = Comb_Weight(leftinstance, rightinstance, cur_backbone); 
+			if cur_weight < min_weight: 
+				min_weight_Tree = Comb(leftinstance, rightinstance, cur_backbone); 
 } 
-while (!CheckMatch(rightinstance, cur_backbone)){ 
-rightinstance = PopTop(rightTree) 
-} 
-cur_weight = Comb_Weight(leftinstance, rightinstance, cur_backbone); 
-if cur_weight < min_weight: 
-min_weight_Tree = Comb(leftinstance, rightinstance, cur_backbone); 
-} 
-return min_weight_Tree; 
+		return min_weight_Tree; 
  
 --- 
 For a k-top tree query, we run the above PopTop k  times on the query.  
