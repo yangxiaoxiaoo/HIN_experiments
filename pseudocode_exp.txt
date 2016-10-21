@@ -1,0 +1,64 @@
+Baseline 1: In this baseline, we start from the terminals, perform a BFS, enumerate all instances that matches the types. We then calculate a combined weight, then sort the instances and output the top-k ones.  
+This is the algorithm currently used in openstack[2]. They implemented a straightforward approach to deal with arbitrary graph query(note that our algorithm only optimize for tree queries).  
+ 
+In [2], they started from one fixed vertex in the graph, repeat the following steps until there is no frontier to expand: 
+1-pop a partially mapped subgraph from the queue. If all of its vertices are mapped, then add it to the final mappings.  
+2-find one node N_cur in the template pattern, that is not mapped but has a mapped neighbor. 
+3-in the network, find candidate vertices that are linked to that neighbor and match the type of N_cur. 
+4-filter those candidate vertices that doesn’t satisfy other edges going out except for the one linking the node its from in step 2.  
+ 
+After repeating 1-4 until no neighbors can be further expanded, we have found all instances that match the type. Of all these instances, each one is associated with an accumulated weight. If there exist M(n) instances, where n is the size of input. Selecting k-lightest weight instances can be achieved by Order Statistics in O(M(n)) .
+
+
+
+Baseline 2: In this baseline, we first disassemble the tree query into a main path(the longest path), and a list of side paths. Then we apply the top-k path-finding algorithm proposed by [1] repeatedly. We look into the top elements of all paths and combine them as follows: 
+To guarantee that the correctness of top-k combined path, we pop the top of each path, and check if the nodes matches on the overlapping part. So we need to decompose the query tree in a way that it enables the least dependencies. We also need to modify the top-k path finding so that it gives one top at a time, save the context, wait until other paths are queried, and give the next top instance when needed.  
+ 
+At interdependent part of multiple paths, there can be nodes mismatch, and that is where we need to simultaneously maintain multiple priority queues and branch bound: When path 1, 2, 3 are interdependent(path 2 and 1 dependent, path 3 and 1 dependent, path 2 and 3 independent, path 1 is longest. We start from top 1 instance of path1, and top 1 of path 2. If the nodes doesn’t match, move to the next lightest of path2. until we find a first instance of path 2 that matches the overlapping nodes. Then we do the same to path 3. Now we have a matching instances of the 1,2,3-combined tree, and its weight w0, we use w0 as a bound to cut off how far our search has to go: any instances of path 1, 2 and 3 that has weight larger then w0, we can get rid of. Now we repeat the above procedure for all remaining instances of path 1. 
+ 
+We are going to recursively use the above 3-interdependence algorithm on different depth of the tree. In the recursion procedure, we at one time look at 3 opened priority queue at most: The backbone(of the original tree or of the current subtree we are at), the left subtree, and the right subtree. For any fixed backbone, the left subtree is independent from the right subtree because the only check that they need to satisfy is the part connected to the chosen backbone. 
+ 
+As a function unit, we first modify Albert's algorithm into PopTopPath(Path). It will return a top weight path every time it is called, and modify the candidate space of that Path, so that the next time it is called, already popped paths won't be considered.  
+ 
+We also will add this component CheckMatch(subtree1, subtree2). Note that path is a special case of subtree and can be passed to CheckMatch. CheckMatch will return True when the intersection nodes of subtrees all matches, and will return false if any node doesn't match. 
+ 
+Comb(leftinstance, rightinstance, backbone) returns the tree combined by the three args, Comb_Weight(leftinstance, rightinstance, backbone) returns the total weight of a tree made of the three args.  -----Restriction: the three args have to CheckMatch.  
+
+--- 
+PopTop(Tree): 
+if Tree is a path: 
+return PopTopPath(Tree); //base case of recursion 
+else: 
+min_weight = MAX_WEIGHT; //min weight seen so far 
+min_weight_Tree = emptytree; //the tree instance that has that min_weight 
+ 
+Backbone = longest path of Tree; //the pattern 
+leftTree = Tree.leftsubtree; 
+rightTree = Tree.rightsubtree; 
+pivot_backbone = PopTopPath(Backbone); //the top instance 
+while (!CheckMatch(leftinstance, pivot_backbone)){ 
+leftinstance = PopTop(leftTree) 
+} 
+while (!CheckMatch(rightinstance, pivot_backbone)){ 
+rightinstance = PopTop(rightTree) 
+} 
+min_weight = Comb_Weight(leftinstance, rightinstance, pivot_backbone); //cut off 
+min_weight_Tree = Comb(leftinstance, rightinstance, pivot_backbone); 
+ 
+while (cur_backbone.weight < min_weight){ 
+cur_backbone = PopTopPath(backbone); 
+while((!CheckMatch(leftinstance, cur_backbone)){ 
+leftinstance = PopTop(leftTree) 
+} 
+while (!CheckMatch(rightinstance, cur_backbone)){ 
+rightinstance = PopTop(rightTree) 
+} 
+cur_weight = Comb_Weight(leftinstance, rightinstance, cur_backbone); 
+if cur_weight < min_weight: 
+min_weight_Tree = Comb(leftinstance, rightinstance, cur_backbone); 
+} 
+return min_weight_Tree; 
+ 
+--- 
+For a k-top tree query, we run the above PopTop k  times on the query.  
+ 
