@@ -203,6 +203,51 @@ void Expand_current(const graph_t& g, Query_tree querytree, vector <int> pre_ord
 
 }
 
+//expand the current instanse tree by one node, and return a list of expanded node 
+//with all possible candidate of that new node fixed to it.
+
+vector<Instance_Tree> expand_withcheck(const graph_t& g, unordered_map<int, int> vertex2node, Query_tree querytree, Instance_Tree incomplete_tree, vector<Instance_Tree> complete_instance, vector<Instance_Tree> incompletetrees){
+	verctor<Instance_Tree> new_trees;
+	Instance_Tree new_tree;
+	
+}
+
+QueryResultTrees Bruteforce(const graph_t& g, Query_tree querytree, double& timeUsed){
+	vector<Instance_Tree> complete_instance;
+	vector<Instance_Tree> incompletetrees;
+	unordered_map<int, int> vertex2node; //record the mapping--different for each instance!! 
+	QueryResultTrees result;
+	int numtrees = 0;
+	int mem = 0;
+	int totalTrees = 0;
+	Instance_Tree incomplete_tree; //the current incomplete tree that we want to expand
+	incompletetrees.push_back(query_tree.terminals[0]);
+	while(incompletetrees.size() != 0){
+		incomplete_tree = incompletetrees.back();
+		incompletetrees.pop_back();
+		modified_trees = expend_withcheck(g, incomplete_tree, ); 
+		totalTrees += 1;
+		//expand one node that is not the same as anything in imcomplete_tree or complete_instances
+		//matches type, 
+		//or if it is a terminal, matches the id
+		//if no added one is legit, return empty tree instance
+		for modified_tree in modified_trees{
+			if(modified_tree is not empty){ //if empty, just throw away
+				if(modified_tree is complete){
+					complete_instance.push_back(modified_tree);
+					mem += 1;
+					numtrees += 1;
+					//in bruteforce, number of memory always equals to number og trees.
+				}
+			}
+		}
+	}
+	result.trees = complete_instance;
+	result.numTrees = numTrees;
+	result.mem = mem;
+	result.totalTrees = totalTrees;
+	return result;
+}
 
 //Computes a prophet graph and runs A* to return k-lightest matching instances
 QueryResultTrees AStar_Prophet_Tree(const graph_t& g, Query_tree querytree, double& timeUsed){

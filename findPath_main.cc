@@ -1,4 +1,4 @@
-#include "global.h"
+  #include "global.h"
 #include "proto.h"
 #include "pruned_landmark_labeling.h"
 #include <unordered_set>
