@@ -203,15 +203,33 @@ void Expand_current(const graph_t& g, Query_tree querytree, vector <int> pre_ord
 
 }
 
-//expand the current instanse tree by one node, and return a list of expanded node 
-//with all possible candidate of that new node fixed to it.
-
+//grow the current instanse tree by one node, and return a list of expanded trees
+//expand one node that is not the same as anything in imcomplete_tree or complete_instances
+//dont have to check type since prophet graph has already give us the vertex2node and node2vertex with type constraints.
 vector<Instance_Tree> expand_withcheck(const graph_t& g, unordered_map<int, int> vertex2node, Query_tree querytree, Instance_Tree incomplete_tree, vector<Instance_Tree> complete_instance, vector<Instance_Tree> incompletetrees){
 	verctor<Instance_Tree> new_trees;
 	Instance_Tree new_tree;
-	
+    curnode = querytree - incomplete_tree . anynode //NEED MORE: find a rule to expand. any node in pattern that is connected to some id
+    curnode_from_id = //the is curnode is expanded from
+    //no matter terminal or not, always the same. (since prophet graph alredy converted terminals into set of 1 candidate) 
+    for curnode_candidate in node2vertex[curnode]:{
+        new_tree = incomplete_tree.insert(curnode_from_id, curnode_candidate)
+        new_trees.push_back(new_tree);
+    }
+    return new_trees;
 }
 
+
+
+
+//take a list of matching trees and return top k lightest ones
+vector<Instance_Tree> Top_k_weight(vector<Instance_Tree> complete_instance){
+
+}
+
+
+
+//Baseline 1: based on prophet graph, list all candidates and 
 QueryResultTrees Bruteforce(const graph_t& g, Query_tree querytree, double& timeUsed){
 	vector<Instance_Tree> complete_instance;
 	vector<Instance_Tree> incompletetrees;
@@ -227,10 +245,7 @@ QueryResultTrees Bruteforce(const graph_t& g, Query_tree querytree, double& time
 		incompletetrees.pop_back();
 		modified_trees = expend_withcheck(g, incomplete_tree, ); 
 		totalTrees += 1;
-		//expand one node that is not the same as anything in imcomplete_tree or complete_instances
-		//matches type, 
-		//or if it is a terminal, matches the id
-		//if no added one is legit, return empty tree instance
+		
 		for modified_tree in modified_trees{
 			if(modified_tree is not empty){ //if empty, just throw away
 				if(modified_tree is complete){
@@ -242,12 +257,57 @@ QueryResultTrees Bruteforce(const graph_t& g, Query_tree querytree, double& time
 			}
 		}
 	}
-	result.trees = complete_instance;
+	result.trees = Top_k_weight(complete_instance);
 	result.numTrees = numTrees;
 	result.mem = mem;
 	result.totalTrees = totalTrees;
 	return result;
 }
+
+//tool for baseline 2, given a backbone with fixed nodes, find all the matching instances with weight less then min. 
+vector<Instance_Tree> grow_from_backbone(Instance_Tree backbone, )
+
+//TODO: Baseline 2: decompose the tree into a longest path and feed paths to albert's algo
+//from the longest path node to terminals, do sinple path matching.
+QueryResultTrees Decomposed_paths(const graph_t& g, Query_tree querytree, double& timeUsed){
+    longest_path = [querytree.root, querytree.root.leftchild, ...always go left if possible].reverse + [querytree.root.right,...always right]
+    longest_path_instances = Albert(longest_path)
+
+    int numtrees, mem, totalTrees = 0;
+
+    int min_seen = MAX_WEIGHT;
+    vector<Instance_Tree> trees;
+    Instance_Tree TOP1_tree;
+    vertor<Instance_Tree> TOPk_trees;
+    Instance_Tree tree;
+    for(int i = 0; i < TOP_K; i++) {  //pop the top one (with non-repeatedly check) for k times
+        for longest_path_instance in longest_path_instances:{
+            if weight(longest_path_instance) < min_seen:{ //only take action when this current path has promise.
+                trees =  grow_from_backbone(longest_path_instance, querytree, min_seen)
+                for tree in trees:{
+                    if (tree.weight < min_seen){
+                        if tree not in TOPk_trees:
+                            min_seen = tree.weight
+                            TOP1_tree = tree;
+                        //shoudn't delete all nodes of TOP1. just add a check
+                    }
+                }
+            }
+        }
+        //now we have obtained a TOP1 tree, that hasn't been recorded, record it. 
+        TOPk_trees.push_back(TOP1_tree);
+    }
+
+    //NOTICE: this simple TOP pop one by one may be slow, since we have to swipe k times, and check each step finishing a tree.
+    //--if it turns out to be the case, consider recursive. 
+
+    result.trees = TOPk_trees;
+    result.numTrees = numTrees;
+    result.mem = mem;
+    result.totalTrees = totalTrees;
+    return result;
+}
+
 
 //Computes a prophet graph and runs A* to return k-lightest matching instances
 QueryResultTrees AStar_Prophet_Tree(const graph_t& g, Query_tree querytree, double& timeUsed){
