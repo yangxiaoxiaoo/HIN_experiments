@@ -209,9 +209,57 @@ void Expand_current(const graph_t& g, Query_tree querytree, vector <int> pre_ord
 vector<Instance_Tree> expand_withcheck(const graph_t& g, unordered_map<int, int> vertex2node, Query_tree querytree, Instance_Tree incomplete_tree, vector<Instance_Tree> complete_instance, vector<Instance_Tree> incompletetrees){
 	verctor<Instance_Tree> new_trees;
 	Instance_Tree new_tree;
-    curnode = querytree - incomplete_tree . anynode //NEED MORE: find a rule to expand. any node in pattern that is connected to some id
-    curnode_from_id = //the is curnode is expanded from
-    //no matter terminal or not, always the same. (since prophet graph alredy converted terminals into set of 1 candidate) 
+    bool connected = false
+    bool insert_parent = false; //if this_node is parent of existing check_connection_node
+    bool insert_left = false; //can mean new inserted node is on the left, or can mean cexisting node is inserted node's left child
+    int curnode;
+    for (int i = 0; i< querytree.nodes_ordered.size(); i++){ //enumerate all placeholder in pattern as this node
+        this_node = querytree.nodes_ordered[i];
+        connected = false; //reset: dont assume connection for this node. 
+        if ( this_node not in incomplete_tree.mapped_nodes){ //a unfixed node: is it connected?
+            for check_connection_node in incomplete_tree.mapped_nodes:{
+                if this_node is parent of check_connection_node{
+                    connected = true;
+                    insert_parent = true;
+                    if check_connection_node is leftchild of this_node{
+                        insert_left = true; 
+                        break; //inner for loop
+                    }
+                    if check_connection_node is rightchild of this_node{
+                        insert_left = false;
+                        break;
+                    }
+                }
+                else {
+                    if this_node is leftchild of check_connection_node{
+                        connected = true;
+                        insert_parent = false;
+                        insert_left = true;
+                        break;
+                    }
+                    else if this_node is rightchild of check_connection_node{
+                        connected = true; 
+                        insert_parent = false;
+                        insert_left = false;
+                        break;
+                    }
+                }
+
+                //now we have checked this_node. if connected is true, it is connected to some and should insert next to check_connection_nodes
+                //if connected is false, means this node is useless, do nothing.
+                if connected{
+                    new_trees = incomplete_tree.insert(this_node, check_connection_node, insert_parent, insert_left);
+                    break; //break the inner for, stop searching
+                }
+                //if not connected, move to the next check_connection_node
+            }//here we have looked at all check_connection_node that exists. 
+            if connected{
+                break;//outer loop
+            }
+            //if still none of them connected, cannot break, the outer loop is giving us a new this_node
+        }
+    }//here we have examined all this_node that is not there. 
+
     for curnode_candidate in node2vertex[curnode]:{
         new_tree = incomplete_tree.insert(curnode_from_id, curnode_candidate)
         new_trees.push_back(new_tree);
@@ -219,50 +267,129 @@ vector<Instance_Tree> expand_withcheck(const graph_t& g, unordered_map<int, int>
     return new_trees;
 }
 
-
-
+//a comparison that takes a parameter and return an operator --MOVE to utils.cc later
+struct compare_srtuct{
+    compare_srtuct(vector<Instance_Tree> complete_trees) {this -> complete_trees = complete_trees; }
+    bool operator() (int i, int j) {//both i and j are index that we want to compare weight on
+        return (complete_trees[i].wgt < complete_trees[j].wgt);
+    }
+}compare_struct;
+//done
 
 //take a list of matching trees and return top k lightest ones
-vector<Instance_Tree> Top_k_weight(vector<Instance_Tree> complete_instance){
-
+vector<Instance_Tree> Top_k_weight(vector<Instance_Tree> complete_trees){
+    vector<int> top_k_index;
+    float cur_weight;
+    float largest_wgt;
+    for(int i=0; i< complete_trees.size(); i++){
+        if(top_k_index.size() >= TOP_K){ //already full: replace if see a better
+            cur_weight = complete_trees[i].wgt;
+            largest_wgt = complete_trees[top_k_index.back()].wgt; //largest weight is always the last one
+            if (cur_weight < largest){ //less then the last element which is the largest
+                top_k_index.pop_back();
+                top_k_index.push_back(i);
+                top_k_index = sort(top_k_index.begin(), top_k_index.end(), compare_srtuct(complete_trees)); //sort by the element weight
+            }
+        }
+        else{//not full yet, just add!!
+            cur_weight = complete_trees[i].wgt;
+            top_k_index.push_back(i);
+        }
+    }
 }
+//done
 
 
+//Take graph g and the query tree, change the vertices to node map, the mapback to the prophet mapping that discribes all that matches type
+int typecheck_all(const craph_t& g, Query_tree querytree, unordered_map<int, int>& vertex2node, unordered_map<int, int>& node2layers){  
+    int iterationnum = querytree.patterns.size()-1;
+    float minWgt = MAX_WEIGHT;
+    for(int i=0; i<querytree.terminals_index.size(); i++){
+        cout<<"TEST OUTPUT "<<g.typeMap[querytree.nodes_ordered[querytree.terminals_index[i]]]<<" & "<<querytree.patterns[querytree.terminals_index[i]]<<endl;
+        if( (g.typeMap[querytree.nodes_ordered[querytree.terminals_index[i]]]!=querytree.patterns[querytree.terminals_index[i]])){
+            cout<< "src or tgt node does not follow pattern!" << endl;
+            return 1;
+            }
+    }
+    vector<GeneralizedQuery> decomposed_queries = decompo_Query_Tree(querytree);
+    unordered_map<int, float> junction_leftmap;
+    unordered_map<int, float> junction_rightmap;
+
+    //for each path query (obtained by decomposition), generate candidate prophet graph
+    for (int i=0; i<decomposed_queries.size(); i++){//process by the post-order
+        GeneralizedQuery current_query = decomposed_queries[i];
+        //If in the path being processed now, either source or target is a junction, return the previous iteration's node2layers to initialize the values
+        if (find(querytree.junctions.begin(), querytree.junctions.end(), current_query.srcs.begin()->first)!= querytree.junctions.end()){ //if src is a junction, get candidate layers from previous iteration
+            current_query.srcs = node2layers[current_query.srcs.begin()->first];
+        }
+        else{
+            if(find(querytree.junctions.begin(), querytree.junctions.end(), current_query.tgts.begin()->first)!= querytree.junctions.end()){ //tgt is a junction
+                current_query.tgts = node2layers[current_query.tgts.begin()->first];
+            }
+        }
+        vector<unordered_map<int, float> > layers;
+        unordered_map<int, float> current_junction_leftmap;
+        unordered_map<int, float> current_junction_rightmap;
+
+        //Calling path query function from Albert (which has been generalized here to handle a set of potentially matching vertices as source or target)
+        //It also computes the heuristic values in the process (value of a node2layer node key)
+        layers = create_Prophet_Heuristics_generalized(g, current_query, timeUsed, current_junction_leftmap, current_junction_rightmap);//layers stores the legitimate nodes on each level. Each layer is a set.
+        for (int i=0; i< layers.size(); i++){
+            node2layers[current_query.nodes[i]] = layers[i];  //i-th node updated into the candidate set chart. using map--unordered map for now...
+            for (auto it = layers[i].begin(); it!=layers[i].end(); it++){
+                int vertex = it->first;
+                vertex2node[vertex] = current_query.nodes[i];
+            }
+        }
+        junction_leftmap.insert(current_junction_leftmap.begin(), current_junction_leftmap.end());
+        junction_rightmap.insert(current_junction_rightmap.begin(), current_junction_rightmap.end());
+    }
+    return 0;
+}
+//done
 
 //Baseline 1: based on prophet graph, list all candidates and 
 QueryResultTrees Bruteforce(const graph_t& g, Query_tree querytree, double& timeUsed){
-	vector<Instance_Tree> complete_instance;
+    unordered_map<int, unordered_map<int, float>> node2layers; 
+    unordered_map<int, int> vertex2node; 
+	vector<Instance_Tree> complete_trees;
 	vector<Instance_Tree> incompletetrees;
-	unordered_map<int, int> vertex2node; //record the mapping--different for each instance!! 
+    typecheck_all(g, querytree,&vertex2node, &node2layers); //now these vertext to node and back mappings all give the right type
 	QueryResultTrees result;
 	int numtrees = 0;
 	int mem = 0;
 	int totalTrees = 0;
 	Instance_Tree incomplete_tree; //the current incomplete tree that we want to expand
-	incompletetrees.push_back(query_tree.terminals[0]);
+    incomplete_tree.nodes.push_back(query_tree.terminals[0]);
+    incomplete_tree.wgt = 0;
+	incompletetrees.push_back(incomplete_tree); //initialize with first terminal
 	while(incompletetrees.size() != 0){
+        if (incomplete_tree.size() > mem)
+            mem ++; //mem is the maximum lenghth that incomplete tree has reached.
+        //while there still is incomplete trees, pop out one instance and grow that one
 		incomplete_tree = incompletetrees.back();
-		incompletetrees.pop_back();
-		modified_trees = expend_withcheck(g, incomplete_tree, ); 
-		totalTrees += 1;
+		incompletetrees.pop_back(); 
+		modified_trees = expend_withcheck(g, incomplete_tree, vertex2node, node2layers); 
+		totalTrees += modified_trees.size();
 		
 		for modified_tree in modified_trees{
-			if(modified_tree is not empty){ //if empty, just throw away
-				if(modified_tree is complete){
-					complete_instance.push_back(modified_tree);
-					mem += 1;
-					numtrees += 1;
-					//in bruteforce, number of memory always equals to number og trees.
-				}
+			if(modified_tree.nodes.size() == querytree.nodes_ordered.size()){ //already complete after the growth
+				complete_trees.push_back(modified_tree);
+				numtrees += 1;
+				//in bruteforce, number of memory always equals to number og trees.
 			}
+            else{
+                incompletetrees.push_back(modified_tree);
+            }
 		}
 	}
-	result.trees = Top_k_weight(complete_instance);
+	result.trees = Top_k_weight(complete_trees);
 	result.numTrees = numTrees;
 	result.mem = mem;
 	result.totalTrees = totalTrees;
 	return result;
 }
+
 
 //tool for baseline 2, given a backbone with fixed nodes, find all the matching instances with weight less then min. 
 vector<Instance_Tree> grow_from_backbone(Instance_Tree backbone, )
