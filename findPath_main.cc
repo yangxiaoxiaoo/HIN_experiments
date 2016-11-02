@@ -104,6 +104,29 @@ int trans_seed = 0;
 	cout << "#################################################"<< endl;
 
 
+	//BASELINE 1 TEST RUN//
+//	test_baseline1(G,testQTree,pTime2);
+
+  /////////////BASELINE1////////////////
+	gettimeofday(&time1, NULL);
+    qResult = Bruteforce(G,testQTree,pTime2);
+    gettimeofday(&time2, NULL);
+	numtree = qResult.numTrees; //the search space: number of trees generated
+	timeDiff = (time2.tv_sec + double(time2.tv_usec)/1000000) - (time1.tv_sec + double(time1.tv_usec)/1000000);
+
+    if(qResult.trees.size()>0){
+        for (int i=0; i<qResult.trees.size(); i++){
+                cout  <<i<<" th lightest tree has weight: "<< qResult.trees[i].wgt << "\t" << qResult.mem << "\t" <<numtree << "\t" << qResult.totalTrees << "\t" <<"time--"<<timeDiff<<endl;
+        }
+    }
+
+	else
+        cout << -1 << "\t" << qResult.mem << "\t" << qResult.totalTrees << endl;
+	cout << "#################################################"<< endl;
+
+
+  //////////////END OF BASELINE 1/////////////////
+
 	/////////////////compare to: same sized path case.
 	Query testQ = Transform_2line(G, testQTree, trans_seed);
 	gettimeofday(&time3, NULL);
