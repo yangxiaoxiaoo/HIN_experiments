@@ -24,6 +24,7 @@ std::unordered_map<int, std::unordered_set<int>> Retrieve_children(Query_tree QT
 graph_t load_graph(char *fname, std::vector<std::pair<int, int>> &edge_list);
 void print2Screen(QueryResult qResult, double timeDiff);
 void print2File(QueryResult qResult, double timeDiff, std::ofstream& ofs);
+void print2FileTree(QueryResultTrees qResultTree, double timeDiff, std::ofstream& ofs);
 /*
 	dfm.cc
 */
@@ -57,8 +58,8 @@ float getHeuristicValueTree(const graph_t& g, Query_tree query_tree, int depth, 
 void Expand_current(const graph_t& g, Query_tree querytree, std::vector <int> pre_order_patterns, int& curId,
                     PQEntity_AStar_Tree& curNode,Instance_Tree subtree, int& total,std::unordered_map<int, std::unordered_map<int, float>> node2layers,
                     std::unordered_map<int, int> vertex2node,std::priority_queue<PQEntity_AStar_Tree, std::vector<PQEntity_AStar_Tree>, comparator_AStar_Tree>& frontier);
-std::vector<Instance_Tree> Set_insert(const graph_t& g, Instance_Tree Old_tree, int this_node, int check_connection_node, bool insert_parent, bool insert_left, std::unordered_map<int, int> vertex2node);
-std::vector<Instance_Tree> expend_withcheck(const graph_t& g, std::unordered_map<int, int> vertex2node, Query_tree querytree, Instance_Tree incomplete_tree);
+std::vector<Instance_Tree> Set_insert(const graph_t& g, Instance_Tree Old_tree, int this_node, int check_connection_node, bool insert_parent, bool insert_left, std::unordered_map<int, int> vertex2node, int&numtrees);
+std::vector<Instance_Tree> expend_withcheck(const graph_t& g, std::unordered_map<int, int> vertex2node, Query_tree querytree, Instance_Tree incomplete_tree, int& numtrees);
 std::vector<Instance_Tree> Top_k_weight(std::vector<Instance_Tree> complete_trees);
 int typecheck_all(const graph_t& g, Query_tree querytree, std::unordered_map<int, int>& vertex2node, std::unordered_map<int, std::unordered_map<int, float>>& node2layers);
 QueryResultTrees Bruteforce(const graph_t& g, Query_tree querytree, double& timeUsed);

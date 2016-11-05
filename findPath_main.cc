@@ -109,25 +109,28 @@ int trans_seed = 0;
 
   /////////////BASELINE1////////////////
 	gettimeofday(&time1, NULL);
-    qResult = Bruteforce(G,testQTree,pTime2);
+    qResult1 = Bruteforce(G,testQTree,pTime2);
     gettimeofday(&time2, NULL);
-	numtree = qResult.numTrees; //the search space: number of trees generated
-	timeDiff = (time2.tv_sec + double(time2.tv_usec)/1000000) - (time1.tv_sec + double(time1.tv_usec)/1000000);
+	numtree = qResult1.numTrees; //the search space: number of trees generated
+	timeDiff1 = (time2.tv_sec + double(time2.tv_usec)/1000000) - (time1.tv_sec + double(time1.tv_usec)/1000000);
 
-    if(qResult.trees.size()>0){
-        for (int i=0; i<qResult.trees.size(); i++){
-                cout  <<i<<" th lightest tree has weight: "<< qResult.trees[i].wgt << "\t" << qResult.mem << "\t" <<numtree << "\t" << qResult.totalTrees << "\t" <<"time--"<<timeDiff<<endl;
+    if(qResult1.trees.size()>0){
+        for (int i=0; i<qResult1.trees.size(); i++){
+                cout  <<i<<" th lightest tree has weight: "<< qResult1.trees[i].wgt << "\t" << qResult.mem << "\t" <<numtree << "\t" << qResult1.totalTrees << "\t" <<"time--"<<timeDiff1<<endl;
         }
     }
 
 	else
-        cout << -1 << "\t" << qResult.mem << "\t" << qResult.totalTrees << endl;
+        cout << -1 << "\t" << qResult1.mem << "\t" << qResult1.totalTrees << endl;
 	cout << "#################################################"<< endl;
 
 
   //////////////END OF BASELINE 1/////////////////
 
-	/////////////////compare to: same sized path case.
+
+
+	/////////////////OLD DISCARDED BASELINE: compare to: same sized path case.
+	/*
 	Query testQ = Transform_2line(G, testQTree, trans_seed);
 	gettimeofday(&time3, NULL);
 	QueryResult qResult_comp = AStar_Prophet(G,testQ,pTime2);
@@ -144,6 +147,35 @@ int trans_seed = 0;
         cout << -1 << "\t" << qResult_comp.mem << "\t" << qResult_comp.totalPaths << endl;
 	cout << "#################################################"<< endl;
 
+*/
+
+
+////////////OUTPUT TO FILE/////////////////
+	//our tree algorithm
+	ofstream ofs0 (tmpstr.c_str(), std::ofstream::out);//creating output stream.
+	print2File(qResult, timeDiff, ofs0) ;
+	ofs0 <<numPath;
+	if(pTime1 != 0)
+		ofs0<< "\t" << pTime1 << endl;
+	else if(pTime2 !=0 )
+		ofs0<< "\t" << pTime2 << endl;
+	else
+		ofs0 << endl;
+	ofs0.flush();
+	/////////////baseline 1
+	print2File(qResult1, timeDiff1, ofs0) ;
+	ofs0 <<numPath;
+	if(pTime1 != 0)
+		ofs0<< "\t" << pTime1 << endl;
+	else if(pTime2 !=0 )
+		ofs0<< "\t" << pTime2 << endl;
+	else
+		ofs0 << endl;
+	ofs0.flush();
+
+
+
+	ofs0.close();
 
 
     return 0;
