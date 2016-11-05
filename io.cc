@@ -132,11 +132,11 @@ void print2File(QueryResult qResult, double timeDiff, ofstream& ofs){
 }
 
 void print2FileTree(QueryResultTrees qResultT, double timeDiff, ofstream& ofs){
-	 if(qResult.paths.size()>0)
-		ofs << timeDiff << "\t" << qResultT.paths[0].wgt << "\t" << qResultT.mem "\t" << qResultT.numTrees<< "\t" << qResultT.totalTrees << "\t";
+	 if(qResultT.trees.size()>0){
+		ofs << timeDiff << "\t" << qResultT.trees[0].wgt << "\t" << qResultT.mem <<"\t" << qResultT.numTrees<< "\t" << qResultT.totalTrees << "\t";
 	//	cout  <<i<<" th lightest tree has weight: "<< qResult1.trees[i].wgt << "\t" << qResult.mem << "\t" <<numtree << "\t" << qResult1.totalTrees << "\t" <<"time--"<<timeDiff1<<endl;
         }
 	else
-                ofs << timeDiff << "\t" << -1 << "\t" << qResult.mem << "\t" << qResult.totalPaths << "\t";
+                ofs << timeDiff << "\t" << -1 << "\t" << qResultT.mem << "\t" << qResultT.totalTrees << "\t";
 }
 

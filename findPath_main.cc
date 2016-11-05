@@ -109,10 +109,10 @@ int trans_seed = 0;
 
   /////////////BASELINE1////////////////
 	gettimeofday(&time1, NULL);
-    qResult1 = Bruteforce(G,testQTree,pTime2);
+    QueryResultTrees qResult1 = Bruteforce(G,testQTree,pTime2);
     gettimeofday(&time2, NULL);
 	numtree = qResult1.numTrees; //the search space: number of trees generated
-	timeDiff1 = (time2.tv_sec + double(time2.tv_usec)/1000000) - (time1.tv_sec + double(time1.tv_usec)/1000000);
+	double timeDiff1 = (time2.tv_sec + double(time2.tv_usec)/1000000) - (time1.tv_sec + double(time1.tv_usec)/1000000);
 
     if(qResult1.trees.size()>0){
         for (int i=0; i<qResult1.trees.size(); i++){
@@ -152,9 +152,10 @@ int trans_seed = 0;
 
 ////////////OUTPUT TO FILE/////////////////
 	//our tree algorithm
+	string outputFile(argv[2]);
+	string tmpstr = outputFile +".result.txt";
 	ofstream ofs0 (tmpstr.c_str(), std::ofstream::out);//creating output stream.
-	print2File(qResult, timeDiff, ofs0) ;
-	ofs0 <<numPath;
+	print2FileTree(qResult, timeDiff, ofs0) ;
 	if(pTime1 != 0)
 		ofs0<< "\t" << pTime1 << endl;
 	else if(pTime2 !=0 )
@@ -163,8 +164,8 @@ int trans_seed = 0;
 		ofs0 << endl;
 	ofs0.flush();
 	/////////////baseline 1
-	print2File(qResult1, timeDiff1, ofs0) ;
-	ofs0 <<numPath;
+	print2FileTree(qResult1, timeDiff1, ofs0) ;
+	
 	if(pTime1 != 0)
 		ofs0<< "\t" << pTime1 << endl;
 	else if(pTime2 !=0 )
