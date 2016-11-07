@@ -57,7 +57,7 @@ float getHeuristicValue(const graph_t& g, Query query, int depth, int curNode);
 float getHeuristicValueTree(const graph_t& g, Query_tree query_tree, int depth, int curNode);
 void Expand_current(const graph_t& g, Query_tree querytree, std::vector <int> pre_order_patterns, int& curId,
                     PQEntity_AStar_Tree& curNode,Instance_Tree subtree, int& total,std::unordered_map<int, std::unordered_map<int, float>> node2layers,
-                    std::unordered_map<int, int> vertex2node,std::priority_queue<PQEntity_AStar_Tree, std::vector<PQEntity_AStar_Tree>, comparator_AStar_Tree>& frontier);
+                    std::unordered_map<int, int> vertex2node,std::priority_queue<PQEntity_AStar_Tree, std::vector<PQEntity_AStar_Tree>, comparator_AStar_Tree>& frontier, int& numTrees);
 std::vector<Instance_Tree> Set_insert(const graph_t& g, Instance_Tree Old_tree, int this_node, int check_connection_node, bool insert_parent, bool insert_left, std::unordered_map<int, int> vertex2node, int&numtrees);
 std::vector<Instance_Tree> expend_withcheck(const graph_t& g, std::unordered_map<int, int> vertex2node, Query_tree querytree, Instance_Tree incomplete_tree, int& numtrees);
 std::vector<Instance_Tree> Top_k_weight(std::vector<Instance_Tree> complete_trees);

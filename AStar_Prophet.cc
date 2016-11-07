@@ -106,7 +106,7 @@ QueryResult AStar_Prophet(const graph_t& g, Query query, double& timeUsed){
 //A step forward in A* -- Three cases depending on whether the nodes are terminals or junctions
 void Expand_current(const graph_t& g, Query_tree querytree, vector <int> pre_order_patterns, int& curId, PQEntity_AStar_Tree& curNode,
                Instance_Tree subtree, int& total,unordered_map<int, unordered_map<int, float>> node2layers, unordered_map<int, int> vertex2node,
-               std::priority_queue<PQEntity_AStar_Tree, std::vector<PQEntity_AStar_Tree>, comparator_AStar_Tree>& frontier){
+               std::priority_queue<PQEntity_AStar_Tree, std::vector<PQEntity_AStar_Tree>, comparator_AStar_Tree>& frontier, int& numTrees){
                    //each expanding operation may change: total, frontier, curId, curNode.  other variables wont change.
         bool on_left = true;
         int curId_inpattern = vertex2node[curId];
@@ -137,7 +137,8 @@ void Expand_current(const graph_t& g, Query_tree querytree, vector <int> pre_ord
                             //append this neigh to the subtree at the right place
                             Instance_Tree new_subtree = Instance_Tree_Insert(subtree, old_parent, neigh, on_left); //insert neigh to oldparent's right
                             frontier.push(createPQEntity_AStar_Tree(neigh, edgwgt+curNode.wgt, edgwgt+curNode.wgt+found->second, new_subtree));
-                            total += 1;
+                            numTrees ++;
+
                         }
                     }
                 }
@@ -154,6 +155,7 @@ void Expand_current(const graph_t& g, Query_tree querytree, vector <int> pre_ord
                     on_left = false;
                 }
                 for(int i=0; i<g.degree[curId]; i++){
+                    numTrees ++;
                     int neigh = g.neighbors[g.nodes[curId]+i];//neighbor id.
                     unordered_map<int, float>::iterator found = node2layers[onlychild].find(neigh);
                     float edgwgt = calcWgt(g.wgts[g.nodes[curId]+i], querytree.time);
@@ -180,6 +182,7 @@ void Expand_current(const graph_t& g, Query_tree querytree, vector <int> pre_ord
                             Instance_Tree new_subtree = Instance_Tree_Insert(subtree, curId, neighleft, true);
                             float update_rightvalue = MAX_WEIGHT;
                             for(int j=0; j<g.degree[curId]; j++){ //update the rightvalue for each possible right child, find the lowest possible
+                                numTrees ++;
                                 if (j!=i){
                                     int neighright = g.neighbors[g.nodes[curId]+j];
                                     unordered_map<int, float>::iterator foundright = node2layers[rightchild].find(neighright);
@@ -561,6 +564,7 @@ QueryResultTrees Decomposed_paths(const graph_t& g, Query_tree querytree, double
 
 //Computes a prophet graph and runs A* to return k-ligh matching instances
 QueryResultTrees AStar_Prophet_Tree(const graph_t& g, Query_tree querytree, double& timeUsed){
+    int mem = 0, total = 1, numTrees = 0;
 	int iterationnum = querytree.patterns.size()-1;
         float minWgt = MAX_WEIGHT;
         QueryResultTrees qResultTree;
@@ -649,8 +653,9 @@ QueryResultTrees AStar_Prophet_Tree(const graph_t& g, Query_tree querytree, doub
         tmptree.nodes.insert(it_root->first);
         tmptree.wgt = 0;
         frontier.push(createPQEntity_AStar_Tree(it_root->first, 0, it_root->second, tmptree));//frontier is the priority queue. replace src with root.
+        numTrees ++;
 	}
-	int mem = 0, total = 1;
+
 
 
     //build a reference to decide which is the next curId_inpattern the neighbor should match to, on which side,
@@ -696,6 +701,7 @@ QueryResultTrees AStar_Prophet_Tree(const graph_t& g, Query_tree querytree, doub
 		PQEntity_AStar_Tree curNode;
 		curNode = frontier.top();
 		frontier.pop();
+
 		int curId = curNode.nodeIdx;
 		int done_countes = curNode.subtree.nodes.size()-1;//start from 0.  done_counts: refer to the old path depth
 		Instance_Tree subtree = curNode.subtree;
@@ -712,11 +718,12 @@ QueryResultTrees AStar_Prophet_Tree(const graph_t& g, Query_tree querytree, doub
 		//expanding the neighbors of current node
 		//Expand the most promising path with vertices mapping the next node in the path (if it exists, but can trace back otherwise)
 		//It also updates the value of the right path when entering the junction for the first time. This update involves finding the best heuristic estimate, given that the junction vertex is fixed
-        Expand_current(g, querytree, pre_order_patterns, curId, curNode, subtree,total,node2layers,vertex2node,frontier);
+        Expand_current(g, querytree, pre_order_patterns, curId, curNode, subtree,total,node2layers,vertex2node,frontier, numTrees);
         //each expanding operation may change: total, frontier, curId, curNode.
 		}
 
 	qResultTree.mem = mem;
+	qResultTree.numTrees = numTrees;
         qResultTree.totalTrees = total;
         //Return k-lightest matching trees
         return qResultTree;
