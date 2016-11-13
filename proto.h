@@ -4,7 +4,7 @@
 /*
 	utils.cc
 */
-Query_tree sampleFrom(const graph_t& g, int seed_node);
+Query_tree sampleFrom(const graph_t& g, int seed_node, int shape);
 Query Transform_2line(const graph_t& g, Query_tree testQTree, int transseed);
 int reset_lighest_test(graph_t& g, Instance_Tree Test_T);
 void check_path_wgt(std::vector<Path> paths, graph_t g, Query query);
@@ -63,5 +63,5 @@ std::vector<Instance_Tree> expend_withcheck(const graph_t& g, std::unordered_map
 std::vector<Instance_Tree> Top_k_weight(std::vector<Instance_Tree> complete_trees);
 int typecheck_all(const graph_t& g, Query_tree querytree, std::unordered_map<int, int>& vertex2node, std::unordered_map<int, std::unordered_map<int, float>>& node2layers);
 QueryResultTrees Bruteforce(const graph_t& g, Query_tree querytree, double& timeUsed);
-void test_baseline1(const graph_t& g, Query_tree querytree, double& timeUsed);
+
 

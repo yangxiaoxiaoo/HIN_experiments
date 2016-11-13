@@ -103,6 +103,77 @@ QueryResult AStar_Prophet(const graph_t& g, Query query, double& timeUsed){
         return qResult;
 }
 
+
+//return one result that is not in found_paths
+QueryResult AStar_Prophet_pop(const graph_t& g, Query query, double& timeUsed, unordered_set<Path> found_paths){
+	int maxDepth = query.pattern.size()-1;
+        float minWgt = MAX_WEIGHT;
+        QueryResult qResult;
+        if( (g.typeMap[query.src]!=query.pattern[0]) || (g.typeMap[query.tgt]!=query.pattern[maxDepth]) ){
+                cout << query.src << " to " << query.tgt << endl;
+                cout << g.typeMap[query.src] << " and " << g.typeMap[query.tgt] << endl;
+                cout<< "src or tgt node does not follow pattern!" << endl;
+                return qResult;
+        }
+	int midLayer = query.pattern.size()/2 +1;//half forward and halp backward. And they meet and terminate at the same layer.
+	vector<unordered_map<int, float> > layers = create_Prophet_Heuristics(g, query, timeUsed);//layers stores the legitimate nodes on each level. Each layer is a set.
+//For testing purpose
+/*	for(int ct=0; ct<layers.size(); ct++){
+		cout << layers[ct].size() <<":\t" ;
+		for(unordered_map<int, float>::iterator itr=layers[ct].begin(); itr != layers[ct].end(); itr++)
+			cout << itr->first<<" ";
+		cout << endl;
+	}*/
+	std::priority_queue<PQEntity_AStar, std::vector<PQEntity_AStar>, comparator_AStar> frontier;
+	PQEntity_AStar curNode;
+	vector<int> tmpPath;
+	tmpPath.push_back(query.src);
+	frontier.push(createPQEntity_AStar(query.src, 0, 0, tmpPath));//frontier is the priority queue.
+	int mem = 0, total = 1;
+	while(!frontier.empty()){
+		mem = max(mem, (int)frontier.size());
+		PQEntity_AStar curNode;
+		curNode = frontier.top();
+		frontier.pop();
+		int curId = curNode.nodeIdx;
+		int depth = curNode.path.size()-1;//start from 0.
+		vector<int> path = curNode.path;
+		if(depth==maxDepth){//reach the end of pattern.
+			if(curId == query.tgt && curNode.wgt<MAX_WEIGHT){
+                    //just found one
+                Path cur_path = createPath(curNode.wgt, path);
+                auto p = found_paths.find(curNode);
+                //if cur_path not in found_paths
+                if (p==found_paths.end()){
+                    qResult.paths.push_back();
+                    break;
+                }
+			}
+			continue;
+		}
+		//expanding the neighbors of current node.
+		for(int i=0; i<g.degree[curId]; i++){
+			int neigh = g.neighbors[g.nodes[curId]+i];//neighbor id.
+			//if neighbor is not in the path and follow the pattern.
+			//cout << depth << endl; cout << layers.size() << endl;
+			unordered_map<int, float>::iterator found = layers[depth+1].find(neigh);
+			float edgwgt = calcWgt(g.wgts[g.nodes[curId]+i], query.time);
+			if( found != layers[depth+1].end() && find(path.begin(), path.end(), neigh) == path.end() && edgwgt+curNode.wgt<MAX_WEIGHT){
+				vector<int> newPath = path;
+				newPath.push_back(neigh);
+				frontier.push(createPQEntity_AStar(neigh, edgwgt+curNode.wgt, edgwgt+curNode.wgt+found->second, newPath));
+				total += 1;
+			}
+		}
+
+	}
+	qResult.mem = mem;
+        qResult.totalPaths = total;
+        return qResult;
+}
+
+
+
 //A step forward in A* -- Three cases depending on whether the nodes are terminals or junctions
 void Expand_current(const graph_t& g, Query_tree querytree, vector <int> pre_order_patterns, int& curId, PQEntity_AStar_Tree& curNode,
                Instance_Tree subtree, int& total,unordered_map<int, unordered_map<int, float>> node2layers, unordered_map<int, int> vertex2node,
@@ -471,6 +542,8 @@ QueryResultTrees Bruteforce(const graph_t& g, Query_tree querytree, double& time
     incomplete_tree.wgt = 0; //initialize a single node tree with weight 0
 	incompletetrees.push_back(incomplete_tree); //initialize with first terminal
 	while(incompletetrees.size() != 0){
+        //for those that can never complete?
+
 		if (incompletetrees.size() > mem) mem ++;
 		//mem is the maximum lenghth that incompletetrees has reached.
         //while there still is incomplete trees, pop out one instance and grow that one
@@ -500,52 +573,179 @@ QueryResultTrees Bruteforce(const graph_t& g, Query_tree querytree, double& time
 
 /////////////////END OF BASELINE 1/////////////////
 
-///////////////////TEST OF BASELINE1////////////////
-void test_baseline1(const graph_t& g, Query_tree querytree, double& timeUsed){
+
+
+
+
+
+//////////////////BASELINE 2////////////////////
+//Baseline 2: decompose the tree into a longest path and feed paths to albert's algo
+//from the longest path node to terminals, do sinple path matching.
+
+//reuse from bruteforce: give me all complete trees.
+vector<Instance_Tree> All_matching_trees(const graph_t& g, Query_tree querytree, double& timeUsed){
+    unordered_map<int, unordered_map<int, float>> node2layers;
+    unordered_map<int, int> vertex2node;
+	vector<Instance_Tree> complete_trees;
+	vector<Instance_Tree> incompletetrees;
+	vector<Instance_Tree> modified_trees;
+	Instance_Tree modified_tree;
+    typecheck_all(g, querytree,vertex2node, node2layers); //now these vertext to node and back mappings all give the right type
+    cout<<vertex2node.size()<<","<<node2layers.size()<<"should be large num"<<endl;
+	QueryResultTrees result;
+	int numtrees = 0;
+	int mem = 0;
+	int totalTrees = 0;
+	Instance_Tree incomplete_tree; //the current incomplete tree that we want to expand
+    incomplete_tree.nodes.insert(querytree.terminals[0]);
+    incomplete_tree.wgt = 0; //initialize a single node tree with weight 0
+	incompletetrees.push_back(incomplete_tree); //initialize with first terminal
+	while(incompletetrees.size() != 0){
+        //for those that can never complete?
+
+		if (incompletetrees.size() > mem) mem ++;
+		//mem is the maximum lenghth that incompletetrees has reached.
+        //while there still is incomplete trees, pop out one instance and grow that one
+		incomplete_tree = incompletetrees.back();
+		incompletetrees.pop_back();
+		modified_trees = expend_withcheck(g, vertex2node, node2layers, querytree, incomplete_tree, numtrees);
+		totalTrees += modified_trees.size();
+
+		//for modified_tree in modified_trees
+		for (int i=0; i<modified_trees.size(); i++){
+            modified_tree = modified_trees[i];
+			if(modified_tree.nodes.size() == querytree.nodes_ordered.size()){ //already complete after the growth
+				complete_trees.push_back(modified_tree);
+				//in bruteforce, number of memory always equals to number of trees.
+			}
+            else{
+                incompletetrees.push_back(modified_tree);
+            }
+		}
+	}
+	return complete_trees;
+}
+
+Query GetBackbone(const graph_t& g, Query_tree querytree){
+    int src, tgt;
+    vector<int> pattern_root2src;
+    vector<int> pattern_root2tgt;
+    Query backbone;
+    int curnode = querytree.nodes_ordered.back();//start with root as a curnode.
+    //traverse from root to the first terminal:
+    while(true){
+        pattern_root2src.push_back(g.typeMap[curnode])
+        if (querytree.map2leftcdr.find(curnode)!= querytree.map2leftcdr.end()){//curnode has left child
+            curnode = querytree.map2leftcdr[curnode];
+        }
+        else {
+            if(querytree.map2rightcdr.find(curnode)!= querytree.map2rightcdr.end()){ //has no left child, look at if there is a right child.
+                curnode = querytree.map2rightcdr[curnode];
+            }
+            else{ //first reaches a terminal!
+                    src = curnode;
+                    break;
+            }
+        }
+    }
+    //now we have got a pattern from root to src
+    //traverse from root to the last terminal:
+    curnode = querytree.nodes_ordered.back();
+    while(true){
+        pattern_root2tgt.push_back(g.typeMap[curnode])
+        if (querytree.map2rightcdr.find(curnode)!= querytree.map2rightcdr.end()){//curnode has left child
+            curnode = querytree.map2rightcdr[curnode];
+        }
+        else {
+            if(querytree.map2leftcdr.find(curnode)!= querytree.map2leftcdr.end()){ //has no left child, look at if there is a right child.
+                curnode = querytree.map2leftcdr[curnode];
+            }
+            else{ //first reaches a terminal!
+                    tgt = curnode;
+                    break;
+            }
+        }
+    }
+    //combine the two pattern by reversing root2src, and combine with root2tgt
+    reverse(pattern_root2src.begin(), pattern_root2src.end());
+    for(int i=1; i<pattern_root2tgt.size(); i++){
+        pattern_root2src.push_back(pattern_root2tgt[i]);
+    }
+    backbone.src = src;
+    backbone.tgt = tgt;
+    backbone.time = querytree.time;
+    backbone.pattern = pattern_root2src;
+    return backbone;
+}
+//done
+
+//given a backbone instance, return the matching left_subtree as a usable query. all given nodes viewed as terminals
+Query_tree left_from_backbone(Query_tree querytree, Query BackboneQuery, Path backboneinstance){
+
+}
+
+Query_tree right_from_backbone(Query_tree querytree, Query BackboneQuery, Path backboneinstance){
+
+}
+
+Instance_Tree Combine_tree(Query_tree left_query, Query_tree right_query, Query_tree query, Instance_Tree left_instance, Instance_Tree, right_instance){
 
 }
 
 
-//////////////////BASELINE 2////////////////////
-/*
+QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& timeUsed){
+    Query longest_path;
+    Path longest_path_instance;
+    unordered_set<Path> found_paths;
 
-//tool for baseline 2, given a backbone with fixed nodes, find all the matching instances with weight less then min.
-vector<Instance_Tree> grow_from_backbone(Instance_Tree backbone, )
+    longest_path = GetBackbone(g, querytree);
 
-//TODO: Baseline 2: decompose the tree into a longest path and feed paths to albert's algo
-//from the longest path node to terminals, do sinple path matching.
-QueryResultTrees Decomposed_paths(const graph_t& g, Query_tree querytree, double& timeUsed){
-    longest_path = [querytree.root, querytree.root.leftchild, ...always go left if possible].reverse + [querytree.root.right,...always right]
-    longest_path_instances = Albert(longest_path)
+    int numtrees, mem, totalTrees = 0; //TODO: increase them accordingly!
 
-    int numtrees, mem, totalTrees = 0;
+    float min_kseen_weight = MAX_WEIGHT;
+    float newest_path_wgt = 0;
 
-    int min_seen = MAX_WEIGHT;
-    vector<Instance_Tree> trees;
-    Instance_Tree TOP1_tree;
-    vertor<Instance_Tree> TOPk_trees;
-    Instance_Tree tree;
-    for(int i = 0; i < TOP_K; i++) {  //pop the top one (with non-repeatedly check) for k times
-        for longest_path_instance in longest_path_instances:{
-            if weight(longest_path_instance) < min_seen:{ //only take action when this current path has promise.
-                trees =  grow_from_backbone(longest_path_instance, querytree, min_seen)
-                for tree in trees:{
-                    if (tree.weight < min_seen){
-                        if tree not in TOPk_trees:
-                            min_seen = tree.weight
-                            TOP1_tree = tree;
-                        //shoudn't delete all nodes of TOP1. just add a check
-                    }
-                }
+    vector<Instance_Tree> candidate_trees;
+    vector<Instance_Tree> TOPk_trees;
+    Query_tree left_querytree;
+    Query_tree right_querytree;
+    vector<Instance_Tree> left_instances;
+    vector<Insrance_Tree> right_instances;
+    Instance_Tree right_instance;
+    Instance_Tree left_instance;
+    Instance_Tree combined_tree;
+
+    while(true){
+        QueryResult first_path = AStar_Prophet_pop(g, longest_path, timeUsed, found_paths);
+        if (first_path.paths.size()==0){
+            break; //break condition 1/2: when no more matching path can be found.
+        }
+        longest_path_instance = first_path.paths[0];
+        found_paths.insert(longest_path_instance);
+        newest_path_wgt = longest_path_instance.wgt;
+        min_kseen_weight = Top_k_weight(candidate_trees).back().wgt;
+        if (newest_path_wgt > min_kseen_weight){
+            break; //break condition 2/2: when this current backbone instance weight is larger then the largest of k-lightest ones, then it becomes useless to invest.
+        }
+
+        newest_path_wgt = longest_path_instance.wgt;
+        left_querytree = left_from_backbone(querytree, longest_path, longest_path_instance);
+        right_querytree = right_from_backbone(querytree, longest_path, longest_path_instance);
+        left_instances = All_matching_trees(g, left_querytree, timeUsed);
+        right_instances =  All_matching_trees(g, right_querytree, timeUsed);
+        for (int i=0; i<left_instances.size(); i++){
+            left_instance = left_instances[i];
+            for (int j=0, j<right_instances.size(); i++){
+                right_instance = right_instances[j];
+                combined_tree = Combine_tree(left_querytree, right_querytree, left_instance, right_instance);
+                candidate_trees.push_back(combined_tree);
             }
         }
-        //now we have obtained a TOP1 tree, that hasn't been recorded, record it.
-        TOPk_trees.push_back(TOP1_tree);
     }
 
     //NOTICE: this simple TOP pop one by one may be slow, since we have to swipe k times, and check each step finishing a tree.
     //--if it turns out to be the case, consider recursive.
-
+    TOPk_trees = Top_k_weight(candidate_trees);
     result.trees = TOPk_trees;
     result.numTrees = numTrees;
     result.mem = mem;
@@ -554,7 +754,7 @@ QueryResultTrees Decomposed_paths(const graph_t& g, Query_tree querytree, double
 }
 
 
-*/
+
 ///////////////////END OF BASELINE 2//////////////////////
 
 

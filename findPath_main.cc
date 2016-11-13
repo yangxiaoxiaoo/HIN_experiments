@@ -27,6 +27,10 @@ int main (int argc, char **argv){
 	Query_tree testQTree;
 	Query_tree sampledTree;
 
+	int shape = atoi(argv[3]);
+	int seed = atoi(argv[4]);
+
+
 
 	 //TEST CASE0 PASSED.
  // with instance maching
@@ -43,6 +47,7 @@ int main (int argc, char **argv){
 
 */
 
+/*
 //TEST CASE 1, 2: Random select a seed and grow a tree out from there.
 int seed_node = 0;
 int trans_seed = 0;
@@ -54,6 +59,7 @@ int trans_seed = 0;
 
 //TEST 3 - CLOUD:
 //	std::vector<int> seed_candidate = {0, 1, 4, 7, 11,14};
+
 
     for(int i = 0; i<seed_candidate.size(); i++){
         seed_node = seed_candidate[i];
@@ -70,6 +76,20 @@ int trans_seed = 0;
         }
     }
 
+*/
+
+
+////////////REAL RUN: GIVEN SHAPE AND SEED FROM INPUT////////////
+
+	sampledTree = sampleFrom(G, seed, shape);
+	if (sampledTree.nodes_ordered[0]!= 9999){
+		testQTree = sampledTree;
+		std::cout<<"sampling success: found a query tree!"<<endl;
+	}
+	else{
+		std::cout<<"sampling failure, do nothing for this seed..."<<endl;
+		return 0;
+	}
 
 
 
@@ -99,9 +119,12 @@ int trans_seed = 0;
         }
     }
 
-	else
+	else{
         cout << -1 << "\t" << qResult.mem << "\t" << qResult.totalTrees << endl;
+        return 0; //terminate when there is no instances: do not count those queries.
+		}
 	cout << "#################################################"<< endl;
+
 
 
 	//BASELINE 1 TEST RUN//
@@ -110,6 +133,7 @@ int trans_seed = 0;
   /////////////BASELINE1////////////////
 
 	gettimeofday(&time1, NULL);
+	cout <<"current seed is"<< seed<<endl;
     QueryResultTrees qResult1 = Bruteforce(G,testQTree,pTime2);
     gettimeofday(&time2, NULL);
 	//numtree = qResult1.numTrees; //the search space: number of trees generated
@@ -121,9 +145,12 @@ int trans_seed = 0;
         }
     }
 
-	else
+	else{
         cout << -1 << "\t" << qResult1.mem << "\t" << qResult1.totalTrees << endl;
+        return 0;
+	}
 	cout << "#################################################"<< endl;
+
 
 
   //////////////END OF BASELINE 1/////////////////
@@ -153,7 +180,7 @@ int trans_seed = 0;
 
 ////////////OUTPUT TO FILE/////////////////
 	//our tree algorithm
-	/*
+
 	string outputFile(argv[2]);
 	string tmpstr = outputFile +".result.txt";
 	ofstream ofs0 (tmpstr.c_str(), std::ofstream::out);//creating output stream.
@@ -179,7 +206,7 @@ int trans_seed = 0;
 
 
 	ofs0.close();
-*/
+
 
     return 0;
 }
