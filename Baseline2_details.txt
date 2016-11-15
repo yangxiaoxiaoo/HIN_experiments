@@ -1,0 +1,25 @@
+We also need to come up with a better name of A* styled algorithm, to distinguish it from the impression of A* to the reviewers. I suggest Prioritized exploration of trees (PEOT). 
+ 
+We discussed the possibility of having a set of baseline algorithms, and instead of arguing that PEOT is superior to them on a selection of cases and try to find that group of cases, we list a table of all combination of features(depth of a tree, terminal coverage of a tree, balance of the tree), that describe the entire search space.  
+All algorithms are proposed by us, and each one of them has a strength and weakness. For each "Quadrant", we show the best algorithm in this case. Therefore, instead of picking a small regime of problems, we can present a complete study of the problem space.  
+ 
+The backbone based method has the following steps: 
+Selecting a backbone. Similar to what has been described in the recursive algorithm, we also find first the longest path,  call it the backbone. We use a threshold to decide how far we explore in possible candidates of the backbone.  
+We look at the backbone(of the original tree or of the current subtree we are at), the left subtree, and the right subtree. For any fixed backbone, the left subtree is independent from the right subtree because the only check that they need to satisfy is the part connected to the chosen backbone.  
+For each backbone, starting from the lowest weight one, use the overlapping part with the left subtree as "terminals", combined with the existing terminals on the left subtree, bruteforce find all possible candidate on the left subtree. (Note that this is a divide and conquer combined with a branch and bound, step 3 is divide and conquer: each subtree on the left and on the right is size-reduced, and provided with much more terminals. So although we don't have an analytical representation of how much faster this subtree query in bruteforce will be, we expect to see from Baseline1 a reduce of running time in total.) 
+Do the same for the right subtree. Now use the smallest combined weight of these matching instances found as threshold. 
+Go back to backbone candidate list, and if the next backbone instance has a weight smaller then threshold, select that and repeat all 2-4, reset threshold based on 4. Otherwise terminate.  
+ 
+ 
+Function parts and a pseudocode is provided as follows: 
+ 
+Backbone 
+Given a tree query Qtree, SelectBackbone(Qree) returns a longest path of Qtree, by traversing up from {the first terminal node in post-order}  to the root, and then traversing down from root to last terminal. Return is path typed. 
+Select_Backbone 
+Given a path typed backbone Backbone, a threshold cut_off_w, Select_Backbone(Backbone, cut_off_w) will return a list of all matching instance of Backbone that has a weight less then cut_off_w. 
+This function will be called after having a cut_off_w. 
+Select_1 
+We modify Albert's algorithm into PopTopPath(Path). A top1 instance will be returned the first time when we look for a matching backbone.  
+This function will be called until we have a cut_off_w. 
+Combine tree, and calculate weight 
+Comb(leftinstance, rightinstance, backbone) returns the tree combined by the three args, Comb_Weight(leftinstance, rightinstance, backbone) returns the total weight of a tree made of the three args.  
