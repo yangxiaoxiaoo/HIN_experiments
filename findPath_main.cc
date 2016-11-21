@@ -134,7 +134,7 @@ int trans_seed = 0;
 
 	gettimeofday(&time1, NULL);
 	cout <<"current seed is"<< seed<<endl;
-    QueryResultTrees qResult1 = Bruteforce(G,testQTree,pTime2);
+    QueryResultTrees qResult1 = Bruteforce_modified(G,testQTree,pTime2);
     gettimeofday(&time2, NULL);
 	//numtree = qResult1.numTrees; //the search space: number of trees generated
 	double timeDiff1 = (time2.tv_sec + double(time2.tv_usec)/1000000) - (time1.tv_sec + double(time1.tv_usec)/1000000);

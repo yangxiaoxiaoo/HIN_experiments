@@ -42,7 +42,7 @@ Query_tree sampleFrom(const graph_t& g, int seed_node, int shape){
                 QTree.terminals_index = {0, 1, 3};
                 QTree.junction_index = {2, 4};
                 QTree.patterns = {g.typeMap[neigh3], g.typeMap[neigh4], g.typeMap[neigh1],g.typeMap[neigh2],g.typeMap[seed_node]};
-
+                return QTree;
             }
         }
     }
@@ -128,12 +128,433 @@ Query_tree sampleFrom(const graph_t& g, int seed_node, int shape){
                 QTree.terminals_index = {0, 1, 3, 4};
                 QTree.junction_index = {2, 5, 6};
                 QTree.patterns = {g.typeMap[neigh3], g.typeMap[neigh4], g.typeMap[neigh1],g.typeMap[neigh5],g.typeMap[neigh6],g.typeMap[neigh2],g.typeMap[seed_node]};
-
+                return QTree;
             }
         }
     }
-    return QTree;
+
+     if (shape == 3){ //shape3: intersection of two l=4 path with a l=5 path
+        int n1,n2, n3, n4, n5, n6, n7, n8, n9, n10, n11;
+        vector<int>added_neighs;
+        if (seed_node >= g.degree.size()){//seed_node not in graph
+            return QTree;
+        }
+        added_neighs.push_back(seed_node);
+        if (g.degree[seed_node] >= 2){
+            n1 = g.neighbors[g.nodes[seed_node]];
+            n5 = g.neighbors[g.nodes[seed_node]+1];
+            added_neighs.push_back(n1);
+            added_neighs.push_back(n5);
+            if (g.degree[n1]>= 2 && g.degree[n5]>=3){
+                n2 = g.neighbors[g.nodes[n1]];
+                if(g.degree[n2]>=2 && find(added_neighs.begin(), added_neighs.end(), n2) == added_neighs.end()){ //n2 hasn't been added
+                    added_neighs.push_back(n2);
+                    n3 = g.neighbors[g.nodes[n2]];
+                    if(g.degree[n3]>=2 && find(added_neighs.begin(), added_neighs.end(), n3) == added_neighs.end()){
+                        added_neighs.push_back(n3);
+                        n4 = g.neighbors[g.nodes[n3]];
+                        if (find(added_neighs.begin(), added_neighs.end(), n4) == added_neighs.end()){
+                            added_neighs.push_back(n4);
+                        }
+                        else return QTree;
+                    }
+                    else return QTree;
+                }
+                else return QTree;
+
+                n6 = g.neighbors[g.nodes[n5]];
+                n9 = g.neighbors[g.nodes[n5]+1];
+                if (g.degree[n6]>=2 && g.degree[n9]>=2 && find(added_neighs.begin(), added_neighs.end(), n6) == added_neighs.end()
+                    && find(added_neighs.begin(), added_neighs.end(),n9) == added_neighs.end()){
+                    added_neighs.push_back(n6);
+                    added_neighs.push_back(n9);
+                    n7 = g.neighbors[g.nodes[n6]];
+                    n10 = g.neighbors[g.nodes[n9]];
+                    if (g.degree[n7]>=2 && g.degree[n10]>=2 && find(added_neighs.begin(), added_neighs.end(), n7) == added_neighs.end()
+                        && find(added_neighs.begin(), added_neighs.end(),n10) == added_neighs.end()){
+                        added_neighs.push_back(n7);
+                        added_neighs.push_back(n10);
+                        n8 = g.neighbors[g.nodes[n7]];
+                        n11 = g.neighbors[g.nodes[n10]];
+                        if (find(added_neighs.begin(), added_neighs.end(), n8) == added_neighs.end()
+                        && find(added_neighs.begin(), added_neighs.end(),n11) == added_neighs.end()){
+                            QTree.nodes_ordered = {n4, n3, n2, n1, n8, n7, n6, n11, n10, n9, n5, seed_node};
+                            QTree.map2leftcdr[seed_node] = n1;
+                            QTree.map2leftcdr[n1] = n2;
+                            QTree.map2leftcdr[n2] = n3;
+                            QTree.map2leftcdr[n3] = n4;
+                            QTree.map2leftcdr[n5] = n6;
+                            QTree.map2leftcdr[n6] = n7;
+                            QTree.map2leftcdr[n7] = n8;
+                            QTree.map2rightcdr[seed_node] = n5;
+                            QTree.map2rightcdr[n5] = n9;
+                            QTree.map2rightcdr[n9] = n10;
+                            QTree.map2rightcdr[n10] = n11;
+                            QTree.map2parent[n4] = n3;
+                            QTree.map2parent[n3] = n2;
+                            QTree.map2parent[n2] = n1;
+                            QTree.map2parent[n1] = seed_node;
+                            QTree.map2parent[n8] = n7;
+                            QTree.map2parent[n7] = n6;
+                            QTree.map2parent[n6] = n5;
+                            QTree.map2parent[n5] = seed_node;
+                            QTree.map2parent[n11] = n10;
+                            QTree.map2parent[n10] = n9;
+                            QTree.map2parent[n9] = n5;
+                            QTree.terminals_index = {0, 4, 7};
+                            QTree.junction_index = {10, 11};
+                            QTree.patterns = {g.typeMap[n4], g.typeMap[n3], g.typeMap[n2],g.typeMap[n1],
+                                g.typeMap[n8], g.typeMap[n7], g.typeMap[n6],g.typeMap[n11],
+                                g.typeMap[n10], g.typeMap[n9], g.typeMap[n5],g.typeMap[seed_node]};
+                            return QTree;
+
+                        }
+                        else return QTree;
+                    }
+                    else return QTree;
+                }
+                else return QTree;
+            }
+            else return QTree;
+        }
+        else return QTree;
+    }
+    //end of shape 3
+    if (shape == 4){ //shape3 without 4, 8, 11
+        int n1,n2, n3, n5, n6, n7, n9, n10;
+        vector<int>added_neighs;
+        if (seed_node >= g.degree.size()){//seed_node not in graph
+            return QTree;
+        }
+        added_neighs.push_back(seed_node);
+        if (g.degree[seed_node] >= 2){
+            n1 = g.neighbors[g.nodes[seed_node]];
+            n5 = g.neighbors[g.nodes[seed_node]+1];
+            added_neighs.push_back(n1);
+            added_neighs.push_back(n5);
+            if (g.degree[n1]>= 2 && g.degree[n5]>=3){
+                n2 = g.neighbors[g.nodes[n1]];
+                if(g.degree[n2]>=2 && find(added_neighs.begin(), added_neighs.end(), n2) == added_neighs.end()){ //n2 hasn't been added
+                    added_neighs.push_back(n2);
+                    n3 = g.neighbors[g.nodes[n2]];
+                    if(find(added_neighs.begin(), added_neighs.end(), n3) == added_neighs.end()){
+                        added_neighs.push_back(n3);
+                    }
+                    else return QTree;
+                }
+                else return QTree;
+
+                n6 = g.neighbors[g.nodes[n5]];
+                n9 = g.neighbors[g.nodes[n5]+1];
+                if (g.degree[n6]>=2 && g.degree[n9]>=2 && find(added_neighs.begin(), added_neighs.end(), n6) == added_neighs.end()
+                    && find(added_neighs.begin(), added_neighs.end(),n9) == added_neighs.end()){
+                    added_neighs.push_back(n6);
+                    added_neighs.push_back(n9);
+                    n7 = g.neighbors[g.nodes[n6]];
+                    n10 = g.neighbors[g.nodes[n9]];
+                    if ( find(added_neighs.begin(), added_neighs.end(), n7) == added_neighs.end()
+                        && find(added_neighs.begin(), added_neighs.end(),n10) == added_neighs.end()){
+                        added_neighs.push_back(n7);
+                        added_neighs.push_back(n10);
+
+                        QTree.nodes_ordered = {n3, n2, n1,  n7, n6,n10, n9, n5, seed_node};
+                        QTree.map2leftcdr[seed_node] = n1;
+                        QTree.map2leftcdr[n1] = n2;
+                        QTree.map2leftcdr[n2] = n3;
+                        QTree.map2leftcdr[n5] = n6;
+                        QTree.map2leftcdr[n6] = n7;
+                        QTree.map2rightcdr[seed_node] = n5;
+                        QTree.map2rightcdr[n5] = n9;
+                        QTree.map2rightcdr[n9] = n10;
+                        QTree.map2parent[n3] = n2;
+                        QTree.map2parent[n2] = n1;
+                        QTree.map2parent[n1] = seed_node;
+                        QTree.map2parent[n7] = n6;
+                        QTree.map2parent[n6] = n5;
+                        QTree.map2parent[n5] = seed_node;
+                        QTree.map2parent[n10] = n9;
+                        QTree.map2parent[n9] = n5;
+                        QTree.terminals_index = {0, 3, 5};
+                        QTree.junction_index = {7, 8};
+                        QTree.patterns = {g.typeMap[n3], g.typeMap[n2],g.typeMap[n1],
+                             g.typeMap[n7], g.typeMap[n6],
+                            g.typeMap[n10], g.typeMap[n9], g.typeMap[n5],g.typeMap[seed_node]};
+                            return QTree;
+                    }
+                    else return QTree;
+                }
+                else return QTree;
+            }
+            else return QTree;
+        }
+        else return QTree;
+    }
+    //end of shape 4
+
+    if (shape == 5){ //a line
+        int n1,n2, n3, n5, n9;
+        vector<int>added_neighs;
+        if (seed_node >= g.degree.size()){//seed_node not in graph
+            return QTree;
+        }
+        added_neighs.push_back(seed_node);
+        if (g.degree[seed_node] >= 2){
+            n1 = g.neighbors[g.nodes[seed_node]];
+            n5 = g.neighbors[g.nodes[seed_node]+1];
+            cout<<"n1="<<n1<<" n5 ="<<n5<<endl;
+
+            added_neighs.push_back(n1);
+            added_neighs.push_back(n5);
+            if (g.degree[n1]>= 2 && g.degree[n5]>=2){
+                n2 = g.neighbors[g.nodes[n1]+1];
+                cout<<"n2="<<n2<<", degree = "<<g.degree[n2]<<endl;
+
+                if(g.degree[n2]>=2 && find(added_neighs.begin(), added_neighs.end(), n2) == added_neighs.end()){ //n2 hasn't been added
+                    added_neighs.push_back(n2);
+                    n3 = g.neighbors[g.nodes[n2]+1];
+                    cout<<"n3= "<<n3<<endl;
+
+                    if(find(added_neighs.begin(), added_neighs.end(), n3) == added_neighs.end()){
+                        added_neighs.push_back(n3);
+                    }
+                    else return QTree;
+                }
+                else return QTree;
+
+
+                n9 = g.neighbors[g.nodes[n5]+1];
+                if(find(added_neighs.begin(), added_neighs.end(),n9) == added_neighs.end()){
+
+
+                        cout<<" n9= "<<n9<<endl;
+
+
+                        QTree.nodes_ordered = {n3, n2, n1,  n9, n5, seed_node};
+                        QTree.map2leftcdr[seed_node] = n1;
+                        QTree.map2leftcdr[n1] = n2;
+                        QTree.map2leftcdr[n2] = n3;
+
+
+                        QTree.map2rightcdr[seed_node] = n5;
+                        QTree.map2rightcdr[n5] = n9;
+
+                        QTree.map2parent[n3] = n2;
+                        QTree.map2parent[n2] = n1;
+                        QTree.map2parent[n1] = seed_node;
+
+
+                        QTree.map2parent[n5] = seed_node;
+
+                        QTree.map2parent[n9] = n5;
+                        QTree.terminals_index = {0, 3};
+                        QTree.junction_index = {5};
+                        QTree.patterns = {g.typeMap[n3], g.typeMap[n2],g.typeMap[n1],
+                             g.typeMap[n9], g.typeMap[n5],g.typeMap[seed_node]};
+                            return QTree;
+
+
+                    }
+                    else{
+                            return QTree;
+                        }
+
+            }
+            else return QTree;
+        }
+        else return QTree;
+    }
+    //end of shape 5
+
+     if (shape == 6){ //shape4 without 7, 10, 2,3
+        int n1,n5, n6, n9;
+        vector<int>added_neighs;
+        cout<<"seednode is"<<seed_node<<endl;
+        if (seed_node >= g.degree.size()){//seed_node not in graph
+            return QTree;
+        }
+        added_neighs.push_back(seed_node);
+        if (g.degree[seed_node] >= 2){
+            n1 = g.neighbors[g.nodes[seed_node]];
+            n5 = g.neighbors[g.nodes[seed_node]+1];
+            cout<<"n1="<<n1<<" n5 ="<<n5<<endl;
+            added_neighs.push_back(n1);
+            added_neighs.push_back(n5);
+            if (g.degree[n5]>=3){
+
+                n6 = g.neighbors[g.nodes[n5]];
+                n9 = g.neighbors[g.nodes[n5]+1];
+                cout<<"n6= "<<n6<<" n9= "<<n9<<endl;
+
+                if ( find(added_neighs.begin(), added_neighs.end(), n6) == added_neighs.end()
+                    && find(added_neighs.begin(), added_neighs.end(),n9) == added_neighs.end()){
+
+                    QTree.nodes_ordered = { n1,  n6, n9, n5, seed_node};
+                    QTree.map2leftcdr[seed_node] = n1;
+
+                    QTree.map2leftcdr[n5] = n6;
+
+                    QTree.map2rightcdr[seed_node] = n5;
+                    QTree.map2rightcdr[n5] = n9;
+
+
+                    QTree.map2parent[n1] = seed_node;
+
+                    QTree.map2parent[n6] = n5;
+                    QTree.map2parent[n5] = seed_node;
+
+                    QTree.map2parent[n9] = n5;
+                    QTree.terminals_index = {0, 1, 2};
+                    QTree.junction_index = {3, 4};
+                    QTree.patterns = {g.typeMap[n1],
+                         g.typeMap[n6],
+                         g.typeMap[n9], g.typeMap[n5],g.typeMap[seed_node]};
+                        return QTree;
+                }
+                else {
+                    n6 = g.neighbors[g.nodes[n5]+1];
+                    n9 = g.neighbors[g.nodes[n5]+2];
+                    cout<<"n6= "<<n6<<" n9= "<<n9<<endl;
+
+                    if ( find(added_neighs.begin(), added_neighs.end(), n6) == added_neighs.end()
+                    && find(added_neighs.begin(), added_neighs.end(),n9) == added_neighs.end()){
+
+                    QTree.nodes_ordered = { n1, n6, n9, n5, seed_node};
+                    QTree.map2leftcdr[seed_node] = n1;
+
+                    QTree.map2leftcdr[n5] = n6;
+
+                    QTree.map2rightcdr[seed_node] = n5;
+                    QTree.map2rightcdr[n5] = n9;
+
+
+                    QTree.map2parent[n1] = seed_node;
+
+                    QTree.map2parent[n6] = n5;
+                    QTree.map2parent[n5] = seed_node;
+
+                    QTree.map2parent[n9] = n5;
+                    QTree.terminals_index = {0, 1, 2};
+                    QTree.junction_index = {3, 4};
+                    QTree.patterns = {g.typeMap[n1],
+                         g.typeMap[n6],
+                         g.typeMap[n9], g.typeMap[n5],g.typeMap[seed_node]};
+                        return QTree;
+                    }
+
+
+                    else return QTree;
+                }
+
+            }
+            else return QTree;
+        }
+        else return QTree;
+    }
+    //end of shape 7
+
+        if (shape == 7){ //shape4 without 7, 10, 3
+        int n1,n2,n5, n6, n9;
+        vector<int>added_neighs;
+        if (seed_node >= g.degree.size()){//seed_node not in graph
+            return QTree;
+        }
+        added_neighs.push_back(seed_node);
+        if (g.degree[seed_node] >= 2){
+            n1 = g.neighbors[g.nodes[seed_node]];
+            n5 = g.neighbors[g.nodes[seed_node]+1];
+            cout<<"n1="<<n1<<" n5 ="<<n5<<endl;
+
+            added_neighs.push_back(n1);
+            added_neighs.push_back(n5);
+            if (g.degree[n1]>= 2 && g.degree[n5]>=3){
+                n2 = g.neighbors[g.nodes[n1]];
+                cout<<"n2="<<n2<<", degree = "<<g.degree[n2]<<endl;
+
+                if(find(added_neighs.begin(), added_neighs.end(), n2) == added_neighs.end()){ //n2 hasn't been added
+                    added_neighs.push_back(n2);
+
+                    }
+                    else return QTree;
+                }
+                else return QTree;
+
+                n6 = g.neighbors[g.nodes[n5]];
+                n9 = g.neighbors[g.nodes[n5]+1];
+                if (!(g.degree[n6]>=2 && g.degree[n9]>=2 && find(added_neighs.begin(), added_neighs.end(), n6) == added_neighs.end()
+                    && find(added_neighs.begin(), added_neighs.end(),n9) == added_neighs.end())){
+
+                        n6 = g.neighbors[g.nodes[n5]+1];
+                        n9 = g.neighbors[g.nodes[n5]+2];
+                        cout<<"n6= "<<n6<<" n9= "<<n9<<endl;
+                        if (!(g.degree[n6]>=2 && g.degree[n9]>=2 && find(added_neighs.begin(), added_neighs.end(), n6) == added_neighs.end()
+                            && find(added_neighs.begin(), added_neighs.end(),n9) == added_neighs.end())){
+                            return QTree;
+                            }
+                        else{ //now found is good
+                            added_neighs.push_back(n6);
+                            added_neighs.push_back(n9);
+
+                            QTree.nodes_ordered = {n2, n1,  n6, n9, n5, seed_node};
+                            QTree.map2leftcdr[seed_node] = n1;
+                            QTree.map2leftcdr[n1] = n2;
+
+                            QTree.map2leftcdr[n5] = n6;
+
+                            QTree.map2rightcdr[seed_node] = n5;
+                            QTree.map2rightcdr[n5] = n9;
+
+                            QTree.map2parent[n2] = n1;
+                            QTree.map2parent[n1] = seed_node;
+
+                            QTree.map2parent[n6] = n5;
+                            QTree.map2parent[n5] = seed_node;
+
+                            QTree.map2parent[n9] = n5;
+                            QTree.terminals_index = {0, 2, 3};
+                            QTree.junction_index = {4, 5};
+                            QTree.patterns = {g.typeMap[n2],g.typeMap[n1],
+                                 g.typeMap[n6],
+                                 g.typeMap[n9], g.typeMap[n5],g.typeMap[seed_node]};
+                                return QTree;
+
+                        }
+                    } //old found is good
+                    else{
+                        QTree.nodes_ordered = {n2, n1,  n6, n9, n5, seed_node};
+                            QTree.map2leftcdr[seed_node] = n1;
+                            QTree.map2leftcdr[n1] = n2;
+
+                            QTree.map2leftcdr[n5] = n6;
+
+                            QTree.map2rightcdr[seed_node] = n5;
+                            QTree.map2rightcdr[n5] = n9;
+
+                            QTree.map2parent[n2] = n1;
+                            QTree.map2parent[n1] = seed_node;
+
+                            QTree.map2parent[n6] = n5;
+                            QTree.map2parent[n5] = seed_node;
+
+                            QTree.map2parent[n9] = n5;
+                            QTree.terminals_index = {0, 2, 3};
+                            QTree.junction_index = {4, 5};
+                            QTree.patterns = {g.typeMap[n2],g.typeMap[n1],
+                                 g.typeMap[n6],
+                                 g.typeMap[n9], g.typeMap[n5],g.typeMap[seed_node]};
+                                return QTree;
+                        }
+
+            }
+            else return QTree;
+        }
+
+    //end of shape 7
+
+
 }
+
+
+
 
 Query Transform_2line(const graph_t& g, Query_tree testQTree, int transseed){
 //only works for a seed sampled tree.

@@ -48,20 +48,26 @@ QueryResult bidir_Dijkstra(const graph_t& g, PrunedLandmarkLabeling<> &pll, Quer
 */
 QueryResult AStar_Prophet(const graph_t& g, Query query, double& timeUsed);
 QueryResultTrees AStar_Prophet_Tree(const graph_t& g, Query_tree query, double& timeUsed);
-Instance_Tree Instance_Tree_Insert(Instance_Tree subtree, int curId, int neigh, bool on_left);
+Instance_Tree Instance_Tree_Insert(Instance_Tree subtree, int curId, int neigh, float edgewgt, bool on_left);
 QueryResult Bidirec_AStar_Prophet(const graph_t& g, Query query);
 QueryResult AStar_Prophet_Explicit(const graph_t& g, Query query);
 QueryResult AStar_Original(const graph_t& g, PrunedLandmarkLabeling<> &pll, Query query, bool oracle);
 QueryResult AStar_Original_OPT(const graph_t& g, Query query);
 float getHeuristicValue(const graph_t& g, Query query, int depth, int curNode);
 float getHeuristicValueTree(const graph_t& g, Query_tree query_tree, int depth, int curNode);
-void Expand_current(const graph_t& g, Query_tree querytree, std::vector <int> pre_order_patterns, int& curId,
-                    PQEntity_AStar_Tree& curNode,Instance_Tree subtree, int& total,std::unordered_map<int, std::unordered_map<int, float>> node2layers,
-                    std::unordered_map<int, int> vertex2node,std::priority_queue<PQEntity_AStar_Tree, std::vector<PQEntity_AStar_Tree>, comparator_AStar_Tree>& frontier, int& numTrees);
+int Expand_current(const graph_t& g, Query_tree querytree, std::vector <int> pre_order_patterns, int curId,
+                    PQEntity_AStar_Tree curNode,Instance_Tree subtree, int& total,std::unordered_map<int, std::unordered_map<int, float>> node2layers,
+                    int curId_inpattern, std::priority_queue<PQEntity_AStar_Tree, std::vector<PQEntity_AStar_Tree>, comparator_AStar_Tree>& frontier, int& numTrees);
+
+int Expand_current_exhaust(const graph_t& g, Query_tree querytree, std::vector <int> pre_order_patterns, int curId,
+                    PQEntity_AStar_Tree curNode,Instance_Tree subtree, int& total,std::unordered_map<int, std::unordered_map<int, float>> node2layers,
+                    int curId_inpattern, std::priority_queue<PQEntity_AStar_Tree, std::vector<PQEntity_AStar_Tree>, comparator_AStar_Tree>& frontier, int& numTrees);
+
 std::vector<Instance_Tree> Set_insert(const graph_t& g, Instance_Tree Old_tree, int this_node, int check_connection_node, bool insert_parent, bool insert_left, std::unordered_map<int, int> vertex2node, int&numtrees);
 std::vector<Instance_Tree> expend_withcheck(const graph_t& g, std::unordered_map<int, int> vertex2node, Query_tree querytree, Instance_Tree incomplete_tree, int& numtrees);
 std::vector<Instance_Tree> Top_k_weight(std::vector<Instance_Tree> complete_trees);
 int typecheck_all(const graph_t& g, Query_tree querytree, std::unordered_map<int, int>& vertex2node, std::unordered_map<int, std::unordered_map<int, float>>& node2layers);
 QueryResultTrees Bruteforce(const graph_t& g, Query_tree querytree, double& timeUsed);
+QueryResultTrees Bruteforce_modified (const graph_t& g, Query_tree querytree, double& timeUsed);
 
 

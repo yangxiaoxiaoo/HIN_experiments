@@ -132,9 +132,11 @@ struct comparator_AStar{
 //adaptation for binary trees
 typedef struct PQEntity_AStar_Tree{
         int nodeIdx;
+        std::unordered_map<int, int> vertex2node;
+        int curId_inpattern;
         float wgt;
 	float key;
-	bool junction;
+	//bool junction;
        // std::vector<int> subtree;
        Instance_Tree subtree;
 }PQEntity_AStar_Tree;
