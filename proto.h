@@ -69,5 +69,12 @@ std::vector<Instance_Tree> Top_k_weight(std::vector<Instance_Tree> complete_tree
 int typecheck_all(const graph_t& g, Query_tree querytree, std::unordered_map<int, int>& vertex2node, std::unordered_map<int, std::unordered_map<int, float>>& node2layers);
 QueryResultTrees Bruteforce(const graph_t& g, Query_tree querytree, double& timeUsed);
 QueryResultTrees Bruteforce_modified (const graph_t& g, Query_tree querytree, double& timeUsed);
+//baseline2
+Query GetBackbone(const graph_t& g, Query_tree querytree, int &rootpos);
+vector<Instance_Tree> All_matching_trees_fixed(const graph_t& g, Query_tree_fixed query_tree_fixed, double& timeUsed);
+Query_tree_fixed left_from_backbone(int rootpos, Query_tree querytree, Query BackboneQuery, Path backboneinstance);
+Query_tree_fixed right_from_backbone(int rootpos, Query_tree querytree, Query BackboneQuery, Path backboneinstance);
+Instance_Tree Combine_tree(int rootpos, Path backboneinstance, Query_tree query, Instance_Tree left_instance, Instance_Tree right_instance);
+QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& timeUsed);
 
 
