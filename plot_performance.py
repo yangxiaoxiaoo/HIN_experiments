@@ -33,15 +33,15 @@ def plot(AlgoMeans, AlgoStd, baseMeans, baseStd, title, unit):
     ax.set_ylabel(unit)
     ax.set_title(title)
     ax.set_xticks(ind + width)
-    ax.set_xticklabels(('shape5', 'shape7'))
-
+    ax.set_xticklabels(('shape5', 'shape7','shape6', 'shape1', 'shape2'))
+ #   ax.set_yscale('log')
     ax.legend((rects1[0], rects2[0]), ('Algorithm', 'Baseline'))
 
     def autolabel(rects):
         for rect in rects:
             height = rect.get_height()
             ax.text(rect.get_x() + rect.get_width()/2., 1.05*height,
-                    '%f' % float(height),
+                    '%.2f' % float(height),
                     ha='center',            # vertical alignment
                     va='bottom'             # horizontal alignment
                     )
@@ -170,10 +170,11 @@ def plottime():
     baselineMeans = list()
     baselineStd = list()
 
-    algoMeans, algoStd, baselineMeans, baselineStd = stat_time(algoMeans, algoStd, baselineMeans, baselineStd, 5)
-    #construct comparison bar1: first ...
-    algoMeans, algoStd, baselineMeans, baselineStd = stat_time(algoMeans, algoStd, baselineMeans, baselineStd, 7)
-    #construct comparison bar 2: second element in lists to plot
+    shapes = [5, 7, 6, 1, 2]
+
+    for shape in shapes:
+        print shape
+        algoMeans, algoStd, baselineMeans, baselineStd = stat_time(algoMeans, algoStd, baselineMeans, baselineStd, shape)
 
     plot(algoMeans, algoStd, baselineMeans, baselineStd, "Running time for shapes of queries: Enron", 'Time:/s')
 
@@ -185,10 +186,10 @@ def plotmem():
     baselineMeans = list()
     baselineStd = list()
 
-    algoMeans, algoStd, baselineMeans, baselineStd = stat_mem(algoMeans, algoStd, baselineMeans, baselineStd, 5)
-    #construct comparison bar1: first ...
-    algoMeans, algoStd, baselineMeans, baselineStd = stat_mem(algoMeans, algoStd, baselineMeans, baselineStd, 7)
-    #construct comparison bar 2: second element in lists to plot
+    shapes = [5, 7, 6, 1, 2]
+
+    for shape in shapes:
+        algoMeans, algoStd, baselineMeans, baselineStd = stat_mem(algoMeans, algoStd, baselineMeans, baselineStd, shape)
 
     plot(algoMeans, algoStd, baselineMeans, baselineStd, "Memory usage for shapes of queries: Enron", 'numbers')
 
@@ -198,11 +199,10 @@ def plotspace():
     algoStd = list()
     baselineMeans = list()
     baselineStd = list()
+    shapes = [5, 7, 6, 1, 2]
 
-    algoMeans, algoStd, baselineMeans, baselineStd = stat_space(algoMeans, algoStd, baselineMeans, baselineStd, 5)
-    #construct comparison bar1: first ...
-    algoMeans, algoStd, baselineMeans, baselineStd = stat_space(algoMeans, algoStd, baselineMeans, baselineStd, 7)
-    #construct comparison bar 2: second element in lists to plot
+    for shape in shapes:
+        algoMeans, algoStd, baselineMeans, baselineStd =  stat_space(algoMeans, algoStd, baselineMeans, baselineStd, shape)
 
     plot(algoMeans, algoStd, baselineMeans, baselineStd, "Total search space for shapes of queries: Enron", 'numbers')
 

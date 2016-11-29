@@ -22,6 +22,7 @@ def repeat_for_shape(shape_choose, number, infile):
     seen_seeds = set()
 
     skip_first = 1
+    datasetname = infile.split('/')[1]
     with open(infile,'r') as infileP:
         for line in infileP:
             if skip_first == 1:
@@ -30,10 +31,10 @@ def repeat_for_shape(shape_choose, number, infile):
                 seed = line.split(' ')[0]
                 if seed not in seen_seeds:
                     print "NEW ROUND START---"
-                    outdir = "./output"+str(shape_choose)+"/"+str(seed)
+                    outdir = "./"+datasetname+"outputs/output"+str(shape_choose)+"/"+str(seed)
                     print outdir
                   #  try:
-                    run(["./pro-heaps", infile, outdir, str(shape_choose), str(seed)], 20)
+                    run(["./pro-heaps", infile, outdir, str(shape_choose), str(seed)], 60)
                         #when there are real top-k, the result would be valid, otherwise no!
                     #except Exception as Calling_timeout:
                      #   print "WARNING--TIMEOUT"
@@ -49,7 +50,10 @@ def repeat_for_shape(shape_choose, number, infile):
 def main():
    # repeat_for_shape(1, 100, "./Enron/enron_graph.wgt.norm")
    # repeat_for_shape(4, 2000, "./DBLP/dblp_graph.new.wgt")
-    repeat_for_shape(7, 1000, "./Enron/enron_graph.wgt.norm")
+
+    shapelist = [1, 2, 7, 5]
+    for shape in shapelist:
+        repeat_for_shape(shape, 1000, "./DBLP/dblp_graph.new.wgt")
 
 
 
