@@ -105,6 +105,31 @@ int trans_seed = 0;
         testQTree.terminals.push_back(testQTree.nodes_ordered[testQTree.terminals_index[i]]);
 	}
 
+
+
+
+  /////////////COMPARISON////////////////
+
+	gettimeofday(&time1, NULL);
+	cout <<"current seed is"<< seed<<endl;
+    QueryResultTrees qResult1 = Bruteforce_modified(G,testQTree,pTime2);
+    gettimeofday(&time2, NULL);
+	//numtree = qResult1.numTrees; //the search space: number of trees generated
+	double timeDiff1 = (time2.tv_sec + double(time2.tv_usec)/1000000) - (time1.tv_sec + double(time1.tv_usec)/1000000);
+
+    if(qResult1.trees.size()>0){
+        for (int i=0; i<qResult1.trees.size(); i++){
+                cout  <<i<<" th lightest tree has weight: "<< qResult1.trees[i].wgt << "\t" << qResult1.mem << "\t" <<qResult1.numTrees<< "\t" << qResult1.totalTrees << "\t" <<"time--"<<timeDiff1<<endl;
+        }
+    }
+
+	else{
+        cout << -1 << "\t" << qResult1.mem << "\t" << qResult1.totalTrees << endl;
+        return 0;
+	}
+	cout << "#################################################"<< endl;
+
+
 	gettimeofday(&time1, NULL);
 	//query the pattern
     QueryResultTrees qResult = AStar_Prophet_Tree(G,testQTree,pTime2); //pTime2 is only useful if the weight depends on recency.
@@ -127,33 +152,30 @@ int trans_seed = 0;
 
 
 
-	//BASELINE 1 TEST RUN//
-//	test_baseline1(G,testQTree,pTime2);
-
-  /////////////BASELINE1////////////////
-
+//Backbone_query
 	gettimeofday(&time1, NULL);
-	cout <<"current seed is"<< seed<<endl;
-    QueryResultTrees qResult1 = Bruteforce_modified(G,testQTree,pTime2);
-    gettimeofday(&time2, NULL);
-	//numtree = qResult1.numTrees; //the search space: number of trees generated
-	double timeDiff1 = (time2.tv_sec + double(time2.tv_usec)/1000000) - (time1.tv_sec + double(time1.tv_usec)/1000000);
+	//query the pattern
+    QueryResultTrees qResult2 = Backbone_query(G,testQTree,pTime2); //pTime2 is only useful if the weight depends on recency.
 
-    if(qResult1.trees.size()>0){
-        for (int i=0; i<qResult1.trees.size(); i++){
-                cout  <<i<<" th lightest tree has weight: "<< qResult1.trees[i].wgt << "\t" << qResult1.mem << "\t" <<qResult1.numTrees<< "\t" << qResult1.totalTrees << "\t" <<"time--"<<timeDiff1<<endl;
+    gettimeofday(&time2, NULL);
+	//int numtree = qResult2.numTrees; //the search space: number of trees generated
+	timeDiff = (time2.tv_sec + double(time2.tv_usec)/1000000) - (time1.tv_sec + double(time1.tv_usec)/1000000);
+
+    if(qResult2.trees.size()>0){
+        for (int i=0; i<qResult2.trees.size(); i++){
+                cout  <<i<<" th lightest tree has weight: "<< qResult2.trees[i].wgt << "\t" << qResult2.mem << "\t" <<qResult2.numTrees << "\t" << qResult.totalTrees << "\t" <<"time--"<<timeDiff<<endl;
         }
     }
 
 	else{
-        cout << -1 << "\t" << qResult1.mem << "\t" << qResult1.totalTrees << endl;
-        return 0;
-	}
+        cout << -1 << "\t" << qResult2.mem << "\t" << qResult2.totalTrees << endl;
+        return 0; //terminate when there is no instances: do not count those queries.
+		}
 	cout << "#################################################"<< endl;
 
 
 
-  //////////////END OF BASELINE 1/////////////////
+  //////////////END OF COMPARISON/////////////////
 
 
 

@@ -109,71 +109,10 @@ QueryResult AStar_Prophet(const graph_t& g, Query query, double& timeUsed){
         return qResult;
 }
 
-/*
-////////baseline2 utils
-//return one result that is not in found_paths
-QueryResult AStar_Prophet_pop(const graph_t& g, Query query, double& timeUsed, unordered_set<Path> found_paths){
-	int maxDepth = query.pattern.size()-1;
-        float minWgt = MAX_WEIGHT;
-        QueryResult qResult;
-        if( (g.typeMap[query.src]!=query.pattern[0]) || (g.typeMap[query.tgt]!=query.pattern[maxDepth]) ){
-                cout << query.src << " to " << query.tgt << endl;
-                cout << g.typeMap[query.src] << " and " << g.typeMap[query.tgt] << endl;
-                cout<< "src or tgt node does not follow pattern!" << endl;
-                return qResult;
-        }
-	int midLayer = query.pattern.size()/2 +1;//half forward and halp backward. And they meet and terminate at the same layer.
-	vector<unordered_map<int, float> > layers = create_Prophet_Heuristics(g, query, timeUsed);//layers stores the legitimate nodes on each level. Each layer is a set.
 
-	std::priority_queue<PQEntity_AStar, std::vector<PQEntity_AStar>, comparator_AStar> frontier;
-	PQEntity_AStar curNode;
-	vector<int> tmpPath;
-	tmpPath.push_back(query.src);
-	frontier.push(createPQEntity_AStar(query.src, 0, 0, tmpPath));//frontier is the priority queue.
-	int mem = 0, total = 1;
-	while(!frontier.empty()){
-		mem = max(mem, (int)frontier.size());
-		PQEntity_AStar curNode;
-		curNode = frontier.top();
-		frontier.pop();
-		int curId = curNode.nodeIdx;
-		int depth = curNode.path.size()-1;//start from 0.
-		vector<int> path = curNode.path;
-		if(depth==maxDepth){//reach the end of pattern.
-			if(curId == query.tgt && curNode.wgt<MAX_WEIGHT){
-                    //just found one
-                Path cur_path = createPath(curNode.wgt, path);
-                auto p = found_paths.find(curNode);
-                //if cur_path not in found_paths
-                if (p==found_paths.end()){
-                    qResult.paths.push_back();
-                    break;
-                }
-			}
-			continue;
-		}
-		//expanding the neighbors of current node.
-		for(int i=0; i<g.degree[curId]; i++){
-			int neigh = g.neighbors[g.nodes[curId]+i];//neighbor id.
-			//if neighbor is not in the path and follow the pattern.
-			//cout << depth << endl; cout << layers.size() << endl;
-			unordered_map<int, float>::iterator found = layers[depth+1].find(neigh);
-			float edgwgt = calcWgt(g.wgts[g.nodes[curId]+i], query.time);
-			if( found != layers[depth+1].end() && find(path.begin(), path.end(), neigh) == path.end() && edgwgt+curNode.wgt<MAX_WEIGHT){
-				vector<int> newPath = path;
-				newPath.push_back(neigh);
-				frontier.push(createPQEntity_AStar(neigh, edgwgt+curNode.wgt, edgwgt+curNode.wgt+found->second, newPath));
-				total += 1;
-			}
-		}
 
-	}
-	qResult.mem = mem;
-        qResult.totalPaths = total;
-        return qResult;
-}
 
-*/
+
 
 //A step forward in A* -- Three cases depending on whether the nodes are terminals or junctions
 int Expand_current(const graph_t& g, Query_tree querytree, vector <int> pre_order_patterns, int curId, PQEntity_AStar_Tree curNode,
@@ -752,6 +691,80 @@ QueryResultTrees Bruteforce(const graph_t& g, Query_tree querytree, double& time
 //Baseline 2: decompose the tree into a longest path and feed paths to albert's algo
 //from the longest path node to terminals, do sinple path matching.
 
+////////baseline2 utils
+//return one result that is not in found_paths
+QueryResult AStar_Prophet_pop(const graph_t& g, Query query, double& timeUsed, vector<Path> found_paths){
+    Path cur_path;
+	int maxDepth = query.pattern.size()-1;
+        float minWgt = MAX_WEIGHT;
+        QueryResult qResult;
+        if( (g.typeMap[query.src]!=query.pattern[0]) || (g.typeMap[query.tgt]!=query.pattern[maxDepth]) ){
+                cout << query.src << " to " << query.tgt << endl;
+                cout << g.typeMap[query.src] << " and " << g.typeMap[query.tgt] << endl;
+                cout<< "src or tgt node does not follow pattern!" << endl;
+                return qResult;
+        }
+	int midLayer = query.pattern.size()/2 +1;//half forward and halp backward. And they meet and terminate at the same layer.
+	vector<unordered_map<int, float> > layers = create_Prophet_Heuristics(g, query, timeUsed);//layers stores the legitimate nodes on each level. Each layer is a set.
+
+	std::priority_queue<PQEntity_AStar, std::vector<PQEntity_AStar>, comparator_AStar> frontier;
+	PQEntity_AStar curNode;
+	vector<int> tmpPath;
+	tmpPath.push_back(query.src);
+	frontier.push(createPQEntity_AStar(query.src, 0, 0, tmpPath));//frontier is the priority queue.
+	int mem = 0, total = 1;
+	while(!frontier.empty()){
+		mem = max(mem, (int)frontier.size());
+		PQEntity_AStar curNode;
+		curNode = frontier.top();
+		frontier.pop();
+		int curId = curNode.nodeIdx;
+		int depth = curNode.path.size()-1;//start from 0.
+		vector<int> path = curNode.path;
+		if(depth==maxDepth){//reach the end of pattern.
+			if(curId == query.tgt && curNode.wgt<MAX_WEIGHT){
+                    //just found one
+                cur_path = createPath(curNode.wgt, path);
+
+                //if cur_path not in found_paths. hand-written find function cause no == operator in struct path.
+                bool found = false;
+                for (Path path :found_paths){
+                    if (path.nodeIds == cur_path.nodeIds)
+                            found = true;
+                }
+                if (found){
+                    qResult.paths.push_back(cur_path);
+                    break;
+                }
+
+            //    if (find(found_paths.begin(), found_paths.end(), cur_path)==found_paths.end()){
+             //       qResult.paths.push_back(cur_path);
+             //       break;
+             //   }
+			}
+			continue;
+		}
+		//expanding the neighbors of current node.
+		for(int i=0; i<g.degree[curId]; i++){
+			int neigh = g.neighbors[g.nodes[curId]+i];//neighbor id.
+			//if neighbor is not in the path and follow the pattern.
+			//cout << depth << endl; cout << layers.size() << endl;
+			unordered_map<int, float>::iterator found = layers[depth+1].find(neigh);
+			float edgwgt = calcWgt(g.wgts[g.nodes[curId]+i], query.time);
+			if( found != layers[depth+1].end() && find(path.begin(), path.end(), neigh) == path.end() && edgwgt+curNode.wgt<MAX_WEIGHT){
+				vector<int> newPath = path;
+				newPath.push_back(neigh);
+				frontier.push(createPQEntity_AStar(neigh, edgwgt+curNode.wgt, edgwgt+curNode.wgt+found->second, newPath));
+				total += 1;
+			}
+		}
+
+	}
+	qResult.mem = mem;
+        qResult.totalPaths = total;
+        return qResult;
+}//done
+
 //reuse from bruteforce: give me all complete trees.
 vector<Instance_Tree> All_matching_trees(const graph_t& g, Query_tree querytree, double& timeUsed){
     unordered_map<int, unordered_map<int, float>> node2layers;
@@ -804,7 +817,7 @@ Query GetBackbone(const graph_t& g, Query_tree querytree, int &rootpos){
     int curnode = querytree.nodes_ordered.back();//start with root as a curnode.
     //traverse from root to the first terminal:
     while(true){
-        pattern_root2src.push_back(g.typeMap[curnode])
+        pattern_root2src.push_back(g.typeMap[curnode]);
         if (querytree.map2leftcdr.find(curnode)!= querytree.map2leftcdr.end()){//curnode has left child
             curnode = querytree.map2leftcdr[curnode];
         }
@@ -822,7 +835,7 @@ Query GetBackbone(const graph_t& g, Query_tree querytree, int &rootpos){
     //traverse from root to the last terminal:
     curnode = querytree.nodes_ordered.back();
     while(true){
-        pattern_root2tgt.push_back(g.typeMap[curnode])
+        pattern_root2tgt.push_back(g.typeMap[curnode]);
         if (querytree.map2rightcdr.find(curnode)!= querytree.map2rightcdr.end()){//curnode has left child
             curnode = querytree.map2rightcdr[curnode];
         }
@@ -852,10 +865,10 @@ Query GetBackbone(const graph_t& g, Query_tree querytree, int &rootpos){
 
 //a modified version of ALL_matching_trees, take a query_tree_fixed instead
 //return all matching instances, used in backbone given baselines.
-vector<Instance_Tree> All_matching_trees_fixed(const graph_t& g, Query_tree_fixed query_tree_fixed, double& timeUsed){
-	
+vector<Instance_Tree> All_matching_trees_fixed(const graph_t& g, Query_tree_fixed query_tree_fixed, double& timeUsed, int &numtrees, int &mem, int &totalTrees){
+
     unordered_map<int, unordered_map<int, float>> node2layers;
-	query_tree querytree;
+	Query_tree querytree;
 	querytree.map2leftcdr = query_tree_fixed.map2leftcdr;
 	querytree.map2rightcdr = query_tree_fixed.map2rightcdr;
 	querytree.map2parent = query_tree_fixed.map2parent;
@@ -867,8 +880,8 @@ vector<Instance_Tree> All_matching_trees_fixed(const graph_t& g, Query_tree_fixe
 	querytree.terminals = query_tree_fixed.terminals;
 	querytree.patterns = query_tree_fixed.patterns;
 	querytree.time = query_tree_fixed.time;
-	
-	
+
+
     unordered_map<int, int> vertex2node;
 	vector<Instance_Tree> complete_trees;
 	vector<Instance_Tree> incompletetrees;
@@ -877,14 +890,14 @@ vector<Instance_Tree> All_matching_trees_fixed(const graph_t& g, Query_tree_fixe
     typecheck_all(g, querytree,vertex2node, node2layers); //now these vertext to node and back mappings all give the right type
     cout<<vertex2node.size()<<","<<node2layers.size()<<"should be large num"<<endl;
 	QueryResultTrees result;
-	int numtrees = 0;
-	int mem = 0;
-	int totalTrees = 0;
+//	int numtrees = 0;
+//	int mem = 0;
+//	int totalTrees = 0;
 	Instance_Tree incomplete_tree; //the current incomplete tree that we want to expand
     incomplete_tree.nodes.insert(querytree.terminals[0]);
-	incomplete_tree.nodes.insert(query_tree_fixed.fixed_verteces.begin(), query_tree_fixed.fixed_verteces.end()); 
-	
-    incomplete_tree.wgt = 0; //initialize a single node tree with weight 0. 
+	incomplete_tree.nodes.insert(query_tree_fixed.fixed_verteces.begin(), query_tree_fixed.fixed_verteces.end());
+
+    incomplete_tree.wgt = 0; //initialize a single node tree with weight 0.
 	//NOTE: weight of the two query_tree_fixed are combined weight of non-backbone parts!
 	incompletetrees.push_back(incomplete_tree); //initialize with first terminal
 	while(incompletetrees.size() != 0){
@@ -917,28 +930,28 @@ vector<Instance_Tree> All_matching_trees_fixed(const graph_t& g, Query_tree_fixe
 
 //given a backbone instance, return the matching left_subtree as a usable query. all given nodes viewed as terminals
 Query_tree_fixed left_from_backbone(int rootpos, Query_tree querytree, Query BackboneQuery, Path backboneinstance){
-	query_tree_fixed result;
-	int root = query_tree.nodes_ordered.back();
+	Query_tree_fixed result;
+	int root = querytree.nodes_ordered.back();
 	if (querytree.map2leftcdr.find(root)!= querytree.map2leftcdr.end()){ //root has a left child
 		int leftchild = querytree.map2leftcdr[root];
-		int index = find(querytree.nodes_ordered.begin(), querytree.nodes_ordered.end(),leftchild)-querytree.nodes_ordered.begin; //index = nodes.findposition(leftchild)
+		int index = find(querytree.nodes_ordered.begin(), querytree.nodes_ordered.end(),leftchild) - querytree.nodes_ordered.begin(); //index = nodes.findposition(leftchild)
 		for (int i= 0; i<=index; i++){
-			result.nodes_ordered.append(querytree.nodes_ordered[i]); //nodes before leftchild (including)
-			result.patterns.append(querytree.patterns[i]); //patterns = query_tree.patterns.cut at the leftchild
+			result.nodes_ordered.push_back(querytree.nodes_ordered[i]); //nodes before leftchild (including)
+			result.patterns.push_back(querytree.patterns[i]); //patterns = querytree.patterns.cut at the leftchild
 		}
 		for (int i=0; i<= querytree.junction_index.size(); i++){
 			if(querytree.junction_index[i]<=index){
 				result.junction_index.push_back(querytree.junction_index[i]);
 			}
-		}	
-		for (int i=0; i<= querytree.terminal_index.size(); i++){ 
-			if(querytree.terminal_index[i]<=index){
-				result.terminal_index.push_back(querytree.terminal_index[i]);
+		}
+		for (int i=0; i<= querytree.terminals_index.size(); i++){
+			if(querytree.terminals_index[i]<=index){
+				result.terminals_index.push_back(querytree.terminals_index[i]);
 			}
-		}	
-		for(int i = 0, i<rootpos, i++) //add the backbone verteces src side before root
+		}
+		for(int i = 0; i<rootpos; i++) //add the backbone verteces src side before root
 				result.fixed_verteces.push_back(backboneinstance.nodeIds[i]);
-				
+
 		for (int i=0; i<result.nodes_ordered.size(); i++){
 			result.map2patthern.insert(make_pair(result.nodes_ordered[i], result.patterns[i]));
 		}
@@ -948,13 +961,13 @@ Query_tree_fixed left_from_backbone(int rootpos, Query_tree querytree, Query Bac
 		for (int i=0; i<result.terminals_index.size();i++){
 			result.terminals.push_back(result.nodes_ordered[result.terminals_index[i]]);
 		}
-	
-				
+
+
 	//	from left child traverse down add to parental list
 		std::queue<int> left_traverse_Q;
 		int curnode = leftchild;  //start from the left child
 		while(!left_traverse_Q.empty()){
-			
+
 			if (find(querytree.terminals.begin(), querytree.terminals.end(), curnode)==querytree.terminals.end()){ // curnode is not a terminal:
 				if (querytree.map2leftcdr.find(curnode)==querytree.map2leftcdr.end()){//curnode has left child
 					result.map2leftcdr[curnode]=querytree.map2leftcdr[curnode];
@@ -971,7 +984,7 @@ Query_tree_fixed left_from_backbone(int rootpos, Query_tree querytree, Query Bac
 			left_traverse_Q.pop();
 		}
 		//finished the traverse
-			
+
 	}
 	else{ //has no left child, return empty query tree
 		return result;
@@ -980,28 +993,28 @@ Query_tree_fixed left_from_backbone(int rootpos, Query_tree querytree, Query Bac
 
 
 Query_tree_fixed right_from_backbone(int rootpos, Query_tree querytree, Query BackboneQuery, Path backboneinstance){
-	query_tree_fixed result;
-	int root = query_tree.nodes_ordered.back();
+	Query_tree_fixed result;
+	int root = querytree.nodes_ordered.back();
 	if (querytree.map2rightcdr.find(root)!= querytree.map2rightcdr.end()){ //root has a right child
 		int rightchild = querytree.map2rightcdr[root];
-		int index = find(querytree.nodes_ordered.begin(), querytree.nodes_ordered.end(),leftchild)-querytree.nodes_ordered.begin; //index = nodes.findposition(leftchild)
+		int index = find(querytree.nodes_ordered.begin(), querytree.nodes_ordered.end(),rightchild)-querytree.nodes_ordered.begin(); //index = nodes.findposition(leftchild)
 		for (int i= index+1; i<=querytree.nodes_ordered.size()-2; i++){ //-1 is the root position, not including
-			result.nodes_ordered.append(querytree.nodes_ordered[i]); //nodes after partition (including)
-			result.patterns.append(querytree.patterns[i]); //patterns = query_tree.patterns.cut at the leftchild
+			result.nodes_ordered.push_back(querytree.nodes_ordered[i]); //nodes after partition (including)
+			result.patterns.push_back(querytree.patterns[i]); //patterns = query_tree.patterns.cut at the leftchild
 		}
 		for (int i=0; i<= querytree.junction_index.size(); i++){
 			if(querytree.junction_index[i]>index){
 				result.junction_index.push_back(querytree.junction_index[i]);
 			}
-		}	
-		for (int i=0; i<= querytree.terminal_index.size(); i++){ 
-			if(querytree.terminal_index[i]>index){
-				result.terminal_index.push_back(querytree.terminal_index[i]);
+		}
+		for (int i=0; i<= querytree.terminals_index.size(); i++){
+			if(querytree.terminals_index[i]>index){
+				result.terminals_index.push_back(querytree.terminals_index[i]);
 			}
-		}	
-		for(int i = rootpos, i<backboneinstance.nodeIds.size(), i++) //add the backbone verteces after root to tgt side
+		}
+		for(int i = rootpos; i<backboneinstance.nodeIds.size(); i++) //add the backbone verteces after root to tgt side
 				result.fixed_verteces.push_back(backboneinstance.nodeIds[i]);
-				
+
 		for (int i=0; i<result.nodes_ordered.size(); i++){
 			result.map2patthern.insert(make_pair(result.nodes_ordered[i], result.patterns[i]));
 		}
@@ -1011,13 +1024,13 @@ Query_tree_fixed right_from_backbone(int rootpos, Query_tree querytree, Query Ba
 		for (int i=0; i<result.terminals_index.size();i++){
 			result.terminals.push_back(result.nodes_ordered[result.terminals_index[i]]);
 		}
-	
-				
+
+
 	//	from right child traverse down add to parental list
 		std::queue<int> right_traverse_Q;
 		int curnode = rightchild;  //start from the root's right child
 		while(!right_traverse_Q.empty()){
-			
+
 			if (find(querytree.terminals.begin(), querytree.terminals.end(), curnode)==querytree.terminals.end()){ // curnode is not a terminal:
 				if (querytree.map2leftcdr.find(curnode)==querytree.map2leftcdr.end()){//curnode has left child
 					result.map2leftcdr[curnode]=querytree.map2leftcdr[curnode];
@@ -1034,17 +1047,17 @@ Query_tree_fixed right_from_backbone(int rootpos, Query_tree querytree, Query Ba
 			right_traverse_Q.pop();
 		}
 		//finished the traverse
-			
+
 	}
 	else{ //has no right child, return empty query tree
 		return result;
 	}
 }
 
-Instance_Tree Combine_tree(int rootpos, Path backboneinstance, Query_tree query, Instance_Tree left_instance, Instance_Tree right_instance){
+Instance_Tree Combine_tree(int rootpos, Path backboneinstance, Query_tree querytree, Instance_Tree left_instance, Instance_Tree right_instance){
 //NOTE: weight of the two query_tree_fixed are combined weight of non-backbone parts!
 	Instance_Tree result;
-	int root = query.nodes_ordered.back();
+	int root = querytree.nodes_ordered.back();
 	int index = rootpos;
 	int root_vertex = backboneinstance.nodeIds[index];
 	if (querytree.map2leftcdr.find(root)!= querytree.map2leftcdr.end()){//have a left instance, stick the left instance to result
@@ -1054,7 +1067,7 @@ Instance_Tree Combine_tree(int rootpos, Path backboneinstance, Query_tree query,
 		result.nodes.insert(root_vertex);
 	}
 	if (querytree.map2rightcdr.find(root)!= querytree.map2rightcdr.end()){//have a right instance, stick the left instance to result
-		result.map2leftcdr.insert(right_instance.map2leftcdr.begin(), right_instance.map2leftcdr.end());		
+		result.map2leftcdr.insert(right_instance.map2leftcdr.begin(), right_instance.map2leftcdr.end());
 		result.map2rightcdr.insert(right_instance.map2rightcdr.begin(), right_instance.map2rightcdr.end());
 		result.map2parent.insert(right_instance.map2parent.begin(), right_instance.map2parent.end());
 		result.nodes.insert(right_instance.nodes.begin(), right_instance.nodes.end());
@@ -1065,14 +1078,15 @@ Instance_Tree Combine_tree(int rootpos, Path backboneinstance, Query_tree query,
 
 
 QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& timeUsed){
+    QueryResultTrees result;
     Query longest_path;
     Path longest_path_instance;
-    unordered_set<Path> found_paths;
+    vector<Path> found_paths;
 
 	int rootpos = 0;
     longest_path = GetBackbone(g, querytree, rootpos);
 	cout<<"the position of root on backbone is: "<<rootpos;
-	
+
 
     int numtrees, mem, totalTrees = 0; //TODO: increase them accordingly!
 
@@ -1084,7 +1098,7 @@ QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& 
     Query_tree_fixed left_querytree;
     Query_tree_fixed right_querytree;
     vector<Instance_Tree> left_instances;
-    vector<Insrance_Tree> right_instances;
+    vector<Instance_Tree> right_instances;
     Instance_Tree right_instance;
     Instance_Tree left_instance;
     Instance_Tree combined_tree;
@@ -1094,8 +1108,8 @@ QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& 
         if (first_path.paths.size()==0){
             break; //break condition 1/2: when no more matching path can be found.
         }
-        longest_path_instance = first_path.paths[0];
-        found_paths.insert(longest_path_instance);
+        longest_path_instance = first_path.paths.front();
+        found_paths.push_back(longest_path_instance);
         newest_path_wgt = longest_path_instance.wgt;
         min_kseen_weight = Top_k_weight(candidate_trees).back().wgt;
         if (newest_path_wgt > min_kseen_weight){
@@ -1105,13 +1119,13 @@ QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& 
         newest_path_wgt = longest_path_instance.wgt;
         left_querytree = left_from_backbone(rootpos, querytree, longest_path, longest_path_instance);  //modify the query into a querytree and a set of extra_terminals
         right_querytree = right_from_backbone(rootpos, querytree, longest_path, longest_path_instance);
-        left_instances = All_matching_trees(g, left_querytree, timeUsed);
-        right_instances =  All_matching_trees(g, right_querytree, timeUsed);
+        left_instances = All_matching_trees_fixed(g, left_querytree, timeUsed, numtrees, mem, totalTrees);
+        right_instances =  All_matching_trees_fixed(g, right_querytree, timeUsed, numtrees, mem, totalTrees);
         for (int i=0; i<left_instances.size(); i++){
             left_instance = left_instances[i];
-            for (int j=0, j<right_instances.size(); i++){
+            for (int j=0;j<right_instances.size(); i++){
                 right_instance = right_instances[j];
-                combined_tree = Combine_tree(left_querytree, right_querytree, left_instance, right_instance);
+                combined_tree = Combine_tree(rootpos,longest_path_instance, querytree, left_instance, right_instance);
                 candidate_trees.push_back(combined_tree);
             }
         }
@@ -1121,7 +1135,7 @@ QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& 
     //--if it turns out to be the case, consider recursive.
     TOPk_trees = Top_k_weight(candidate_trees);
     result.trees = TOPk_trees;
-    result.numTrees = numTrees;
+    result.numTrees = numtrees;
     result.mem = mem;
     result.totalTrees = totalTrees;
     return result;
@@ -1130,7 +1144,6 @@ QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& 
 
 
 ///////////////////END OF BASELINE 2//////////////////////
-
 
 
 

@@ -95,6 +95,29 @@ typedef struct Query_tree{
 }Query_tree;
 
 
+typedef struct Query_tree_fixed{
+
+	//given a tree query input. At this point, we assume all queries are trees
+	//we have already decomposed the tree into post-order list of nodes
+	std::unordered_map<int, int> map2leftcdr;
+	std::unordered_map<int, int> map2rightcdr;
+	std::unordered_map<int, int> map2parent;
+	std::unordered_map<int, int> map2patthern;
+
+	std::vector<int> nodes_ordered; //unknown set as 0.
+    std::vector<int> terminals_index; //the position of n terminals in the ordered nodes
+    std::vector<int> junction_index; //the position of (n-1) junction nodes
+    std::vector<int> junctions;
+    std::vector<int> terminals;
+	std::vector<int> patterns;//the type of nodes
+	std::vector<int> fixed_verteces;
+
+
+    float time;
+
+}Query_tree_fixed;
+
+
 typedef struct Path{
 	std::vector<int> nodeIds;
 	float wgt;

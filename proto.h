@@ -71,10 +71,10 @@ QueryResultTrees Bruteforce(const graph_t& g, Query_tree querytree, double& time
 QueryResultTrees Bruteforce_modified (const graph_t& g, Query_tree querytree, double& timeUsed);
 //baseline2
 Query GetBackbone(const graph_t& g, Query_tree querytree, int &rootpos);
-vector<Instance_Tree> All_matching_trees_fixed(const graph_t& g, Query_tree_fixed query_tree_fixed, double& timeUsed);
+std::vector<Instance_Tree> All_matching_trees_fixed(const graph_t& g, Query_tree_fixed query_tree_fixed, double& timeUsed, int &numtrees, int &mem, int &totalTrees);
 Query_tree_fixed left_from_backbone(int rootpos, Query_tree querytree, Query BackboneQuery, Path backboneinstance);
 Query_tree_fixed right_from_backbone(int rootpos, Query_tree querytree, Query BackboneQuery, Path backboneinstance);
 Instance_Tree Combine_tree(int rootpos, Path backboneinstance, Query_tree query, Instance_Tree left_instance, Instance_Tree right_instance);
 QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& timeUsed);
-
+QueryResult AStar_Prophet_pop(const graph_t& g, Query query, double& timeUsed,  std::vector<Path> found_paths);
 

@@ -233,7 +233,7 @@ Query_tree sampleFrom(const graph_t& g, int seed_node, int shape){
             added_neighs.push_back(n1);
             added_neighs.push_back(n5);
             if (g.degree[n1]>= 2 && g.degree[n5]>=3){
-                n2 = g.neighbors[g.nodes[n1]];
+                n2 = g.neighbors[g.nodes[n1]+1];
                 if(g.degree[n2]>=2 && find(added_neighs.begin(), added_neighs.end(), n2) == added_neighs.end()){ //n2 hasn't been added
                     added_neighs.push_back(n2);
                     n3 = g.neighbors[g.nodes[n2]];
@@ -244,14 +244,14 @@ Query_tree sampleFrom(const graph_t& g, int seed_node, int shape){
                 }
                 else return QTree;
 
-                n6 = g.neighbors[g.nodes[n5]];
-                n9 = g.neighbors[g.nodes[n5]+1];
+                n6 = g.neighbors[g.nodes[n5]+1];
+                n9 = g.neighbors[g.nodes[n5]+2];
                 if (g.degree[n6]>=2 && g.degree[n9]>=2 && find(added_neighs.begin(), added_neighs.end(), n6) == added_neighs.end()
                     && find(added_neighs.begin(), added_neighs.end(),n9) == added_neighs.end()){
                     added_neighs.push_back(n6);
                     added_neighs.push_back(n9);
-                    n7 = g.neighbors[g.nodes[n6]];
-                    n10 = g.neighbors[g.nodes[n9]];
+                    n7 = g.neighbors[g.nodes[n6]+1];
+                    n10 = g.neighbors[g.nodes[n9]+1];
                     if ( find(added_neighs.begin(), added_neighs.end(), n7) == added_neighs.end()
                         && find(added_neighs.begin(), added_neighs.end(),n10) == added_neighs.end()){
                         added_neighs.push_back(n7);
