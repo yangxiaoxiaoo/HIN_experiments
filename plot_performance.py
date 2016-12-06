@@ -33,7 +33,7 @@ def plot(AlgoMeans, AlgoStd, baseMeans, baseStd, title, unit):
     ax.set_ylabel(unit)
     ax.set_title(title)
     ax.set_xticks(ind + width)
-    ax.set_xticklabels(('shape5', 'shape7','shape6', 'shape1', 'shape2'))
+    ax.set_xticklabels(('shape1', 'shape2','shape5', 'shape6', 'shape7'))
  #   ax.set_yscale('log')
     ax.legend((rects1[0], rects2[0]), ('Algorithm', 'Baseline'))
 
@@ -52,7 +52,7 @@ def plot(AlgoMeans, AlgoStd, baseMeans, baseStd, title, unit):
     plt.show()
 
 
-def stat_time(algoMeans, algoStd, baselineMeans, baselineStd, shape):
+def stat_time(algoMeans, algoStd, baselineMeans, baselineStd, shape, instring):
     algo_times = list()
     algo_mem = list()
     algo_space = list()
@@ -61,9 +61,9 @@ def stat_time(algoMeans, algoStd, baselineMeans, baselineStd, shape):
     baseline_mem = list()
     baseline_space = list()
 
-    onlyfiles = [f for f in listdir("./output"+str(shape)) if isfile(join("./output"+str(shape), f))]
+    onlyfiles = [f for f in listdir(instring+"/output"+str(shape)) if isfile(join(instring+"/output"+str(shape), f))]
     for file in onlyfiles:
-        with open(join("./output"+str(shape), file), "r") as fp:
+        with open(join(instring+"/output"+str(shape), file), "r") as fp:
             counter = 0
             for line in fp:
                 if counter == 0:
@@ -88,7 +88,7 @@ def stat_time(algoMeans, algoStd, baselineMeans, baselineStd, shape):
 
     return (algoMeans, algoStd, baselineMeans, baselineStd)
 
-def stat_mem(algoMeans, algoStd, baselineMeans, baselineStd, shape):
+def stat_mem(algoMeans, algoStd, baselineMeans, baselineStd, shape, instring):
     algo_times = list()
     algo_mem = list()
     algo_space = list()
@@ -97,9 +97,9 @@ def stat_mem(algoMeans, algoStd, baselineMeans, baselineStd, shape):
     baseline_mem = list()
     baseline_space = list()
 
-    onlyfiles = [f for f in listdir("./output"+str(shape)) if isfile(join("./output"+str(shape), f))]
+    onlyfiles = [f for f in listdir(instring+"/output"+str(shape)) if isfile(join(instring+"/output"+str(shape), f))]
     for file in onlyfiles:
-        with open(join("./output"+str(shape), file), "r") as fp:
+        with open(join(instring+"/output"+str(shape), file), "r") as fp:
             counter = 0
             for line in fp:
                 if counter == 0:
@@ -125,7 +125,7 @@ def stat_mem(algoMeans, algoStd, baselineMeans, baselineStd, shape):
     return (algoMeans, algoStd, baselineMeans, baselineStd)
 
 
-def stat_space(algoMeans, algoStd, baselineMeans, baselineStd, shape):
+def stat_space(algoMeans, algoStd, baselineMeans, baselineStd, shape, instring):
     algo_times = list()
     algo_mem = list()
     algo_space = list()
@@ -134,9 +134,9 @@ def stat_space(algoMeans, algoStd, baselineMeans, baselineStd, shape):
     baseline_mem = list()
     baseline_space = list()
 
-    onlyfiles = [f for f in listdir("./output"+str(shape)) if isfile(join("./output"+str(shape), f))]
+    onlyfiles = [f for f in listdir(instring+"/output"+str(shape)) if isfile(join(instring+"/output"+str(shape), f))]
     for file in onlyfiles:
-        with open(join("./output"+str(shape), file), "r") as fp:
+        with open(join(instring+"/output"+str(shape), file), "r") as fp:
             counter = 0
             for line in fp:
                 if counter == 0:
@@ -164,47 +164,43 @@ def stat_space(algoMeans, algoStd, baselineMeans, baselineStd, shape):
 
 
 
-def plottime():
+def plottime(dataset, instring, shapes):
     algoMeans = list()
     algoStd = list()
     baselineMeans = list()
     baselineStd = list()
-
-    shapes = [5, 7, 6, 1, 2]
 
     for shape in shapes:
         print shape
-        algoMeans, algoStd, baselineMeans, baselineStd = stat_time(algoMeans, algoStd, baselineMeans, baselineStd, shape)
+        algoMeans, algoStd, baselineMeans, baselineStd = stat_time(algoMeans, algoStd, baselineMeans, baselineStd, shape, instring)
 
-    plot(algoMeans, algoStd, baselineMeans, baselineStd, "Running time for shapes of queries: Enron", 'Time:/s')
+    plot(algoMeans, algoStd, baselineMeans, baselineStd, "Running time for shapes of queries:"+dataset, 'Time:/s')
 
 
 
-def plotmem():
+def plotmem(dataset, instring, shapes):
     algoMeans = list()
     algoStd = list()
     baselineMeans = list()
     baselineStd = list()
 
-    shapes = [5, 7, 6, 1, 2]
 
     for shape in shapes:
-        algoMeans, algoStd, baselineMeans, baselineStd = stat_mem(algoMeans, algoStd, baselineMeans, baselineStd, shape)
+        algoMeans, algoStd, baselineMeans, baselineStd = stat_mem(algoMeans, algoStd, baselineMeans, baselineStd, shape, instring)
 
-    plot(algoMeans, algoStd, baselineMeans, baselineStd, "Memory usage for shapes of queries: Enron", 'numbers')
+    plot(algoMeans, algoStd, baselineMeans, baselineStd, "Memory usage for shapes of queries: "+dataset, 'numbers')
 
 
-def plotspace():
+def plotspace(dataset, instring, shapes):
     algoMeans = list()
     algoStd = list()
     baselineMeans = list()
     baselineStd = list()
-    shapes = [5, 7, 6, 1, 2]
 
     for shape in shapes:
-        algoMeans, algoStd, baselineMeans, baselineStd =  stat_space(algoMeans, algoStd, baselineMeans, baselineStd, shape)
+        algoMeans, algoStd, baselineMeans, baselineStd =  stat_space(algoMeans, algoStd, baselineMeans, baselineStd, shape, instring)
 
-    plot(algoMeans, algoStd, baselineMeans, baselineStd, "Total search space for shapes of queries: Enron", 'numbers')
+    plot(algoMeans, algoStd, baselineMeans, baselineStd, "Total search space for shapes of queries:"+dataset, 'numbers')
 
 
 
@@ -212,9 +208,13 @@ def plotspace():
 
 
 def main():
-    plottime()
-    plotmem()
-    plotspace()
+    dataset = 'DBLP'
+    instring = dataset + 'outputs'
+    shapes = [1, 2, 5, 6, 7]
+
+    plottime(dataset, instring, shapes)
+    plotmem(dataset, instring, shapes)
+    plotspace(dataset, instring, shapes)
 
 
 if __name__ == "__main__":
