@@ -34,7 +34,7 @@ def plot(AlgoMeans, AlgoStd, baseMeans, baseStd, title, unit):
     ax.set_title(title)
     ax.set_xticks(ind + width)
     ax.set_xticklabels(('shape1', 'shape2','shape5', 'shape6', 'shape7'))
- #   ax.set_yscale('log')
+    ax.set_yscale('log')
     ax.legend((rects1[0], rects2[0]), ('Algorithm', 'Baseline'))
 
     def autolabel(rects):
