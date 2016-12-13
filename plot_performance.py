@@ -208,7 +208,7 @@ def plotspace(dataset, instring, shapes):
 
 
 def main():
-    dataset = 'DBLP'
+    dataset = 'PhotoNet'
     instring = dataset + 'outputs'
     shapes = [1, 2, 5, 6, 7]
 
