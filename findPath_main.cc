@@ -151,7 +151,7 @@ int trans_seed = 0;
 	cout << "#################################################"<< endl;
 
 
-
+/*
 //Backbone_query
 	gettimeofday(&time1, NULL);
 	//query the pattern
@@ -173,7 +173,7 @@ int trans_seed = 0;
 		}
 	cout << "#################################################"<< endl;
 
-
+*/
 
   //////////////END OF COMPARISON/////////////////
 

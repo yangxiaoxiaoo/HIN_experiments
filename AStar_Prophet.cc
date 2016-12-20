@@ -684,7 +684,7 @@ QueryResultTrees Bruteforce(const graph_t& g, Query_tree querytree, double& time
 
 
 
-
+/*
 
 
 //////////////////BASELINE 2////////////////////
@@ -724,7 +724,7 @@ QueryResult AStar_Prophet_pop(const graph_t& g, Query query, double& timeUsed, v
 		if(depth==maxDepth){//reach the end of pattern.
 			if(curId == query.tgt && curNode.wgt<MAX_WEIGHT){
                     //just found one
-                cur_path = createPath(curNode.wgt, path);
+                cur_path = createPath(curNode.wgt, path);  //RIGHT TILL HERE
 
                 //if cur_path not in found_paths. hand-written find function cause no == operator in struct path.
                 bool found = false;
@@ -732,7 +732,7 @@ QueryResult AStar_Prophet_pop(const graph_t& g, Query query, double& timeUsed, v
                     if (path.nodeIds == cur_path.nodeIds)
                             found = true;
                 }
-                if (found){
+                if (!found){
                     qResult.paths.push_back(cur_path);
                     break;
                 }
@@ -1108,7 +1108,7 @@ QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& 
         if (first_path.paths.size()==0){
             break; //break condition 1/2: when no more matching path can be found.
         }
-        longest_path_instance = first_path.paths.front();
+        longest_path_instance = first_path.paths.front(); //first element in a length 1 vector
         found_paths.push_back(longest_path_instance);
         newest_path_wgt = longest_path_instance.wgt;
         min_kseen_weight = Top_k_weight(candidate_trees).back().wgt;
@@ -1146,7 +1146,7 @@ QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& 
 ///////////////////END OF BASELINE 2//////////////////////
 
 
-
+*/
 
 
 
