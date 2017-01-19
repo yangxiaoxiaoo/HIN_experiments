@@ -1058,7 +1058,9 @@ vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree){ //only decompose 
     vector<GeneralizedQuery> decomposed_queries;
 
     cout<< "decomposing tree query..." << endl;
-
+    if (QTree.nodes_ordered.size()<2){
+        return decomposed_queries;
+    }
     //starting a new decomposed path.
     //Non_touched_JT stores the terminals and junctions in the post-order way. In a pre-order traversal, for a junction (not a terminal) at location i in the vector, the source and the target of the corresponding path is at location i-1 and i-2
     vector <int> non_touched_JT; //terminals and juctions that haven't been put into decomposed paths yet
@@ -1089,6 +1091,9 @@ vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree){ //only decompose 
                 nodes_temp.push_back(current_node);
                 cout<<"added " <<current_node << " to the current path, "<<"his pattern is "<<QTree.map2patthern[current_node]<<endl;
                 next_node = QTree.map2parent[current_node];
+                if (next_node==current_node){
+                    break;
+                }
                 current_node = next_node;
             }
             //junction to tgt---down
@@ -1101,6 +1106,9 @@ vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree){ //only decompose 
                     }
                 else
                         next_node= QTree.map2rightcdr[current_node]; //path assumption: either have one right child or have one left node
+                if (next_node==current_node){
+                    break;
+                }
                 current_node = next_node;
             }
 

@@ -151,7 +151,7 @@ int trans_seed = 0;
 	cout << "#################################################"<< endl;
 
 
-/*
+
 //Backbone_query
 	gettimeofday(&time1, NULL);
 	//query the pattern
@@ -159,7 +159,7 @@ int trans_seed = 0;
 
     gettimeofday(&time2, NULL);
 	//int numtree = qResult2.numTrees; //the search space: number of trees generated
-	timeDiff = (time2.tv_sec + double(time2.tv_usec)/1000000) - (time1.tv_sec + double(time1.tv_usec)/1000000);
+	double timeDiff2 = (time2.tv_sec + double(time2.tv_usec)/1000000) - (time1.tv_sec + double(time1.tv_usec)/1000000);
 
     if(qResult2.trees.size()>0){
         for (int i=0; i<qResult2.trees.size(); i++){
@@ -173,7 +173,7 @@ int trans_seed = 0;
 		}
 	cout << "#################################################"<< endl;
 
-*/
+
 
   //////////////END OF COMPARISON/////////////////
 
@@ -224,7 +224,16 @@ int trans_seed = 0;
 	else
 		ofs0 << endl;
 	ofs0.flush();
+	/////////////baseline 2
+	print2FileTree(qResult2, timeDiff2, ofs0) ;
 
+	if(pTime1 != 0)
+		ofs0<< "\t" << pTime1 << endl;
+	else if(pTime2 !=0 )
+		ofs0<< "\t" << pTime2 << endl;
+	else
+		ofs0 << endl;
+	ofs0.flush();
 
 
 	ofs0.close();
