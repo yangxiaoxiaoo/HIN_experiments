@@ -64,6 +64,15 @@ public:
 };
 */
 
+
+
+typedef struct Non_bi_tree{
+    std::unordered_map<int, std::vector<int>> map2chr;
+    std::unordered_map<int, int> map2parent;
+	std::unordered_map<int, int> map2pattern;
+	float time;
+}Non_bi_tree;
+
 typedef struct Query_tree{
 
 	//given a tree query input. At this point, we assume all queries are trees

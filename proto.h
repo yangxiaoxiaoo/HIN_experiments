@@ -4,6 +4,10 @@
 /*
 	utils.cc
 */
+
+Query_tree binaryfy(Non_bi_tree tree);
+std::vector<int> reverse_postorder(int root, std::unordered_map<int, int> map2leftcdr,
+	std::unordered_map<int, int> map2rightcdr);
 Query_tree sampleFrom(const graph_t& g, int seed_node, int shape);
 Query Transform_2line(const graph_t& g, Query_tree testQTree, int transseed);
 int reset_lighest_test(graph_t& g, Instance_Tree Test_T);

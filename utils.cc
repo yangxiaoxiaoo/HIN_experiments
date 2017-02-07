@@ -2,6 +2,168 @@
 using namespace std;
 
 
+
+vector<int> reverse_postorder(int root, unordered_map<int, int> map2leftcdr,
+	unordered_map<int, int> map2rightcdr){
+	vector<int> result;
+	result.push_back(root);
+    while ((map2leftcdr.find(root)!=map2leftcdr.end()) || map2rightcdr.find(root)!=map2rightcdr.end()){
+    //while there is a left child or a right child of root
+        if  (map2rightcdr.find(root)!=map2rightcdr.end()){
+            vector<int> right_sub = reverse_postorder(map2rightcdr[root], map2leftcdr, map2rightcdr);
+            result.insert(result.end(), right_sub.begin(), right_sub.end());
+        }
+
+        if  (map2leftcdr.find(root)!=map2leftcdr.end()){
+            vector<int> left_sub = reverse_postorder(map2leftcdr[root], map2leftcdr, map2rightcdr);
+            result.insert(result.end(), left_sub.begin(), left_sub.end());
+        }
+    }
+    return result;
+}
+
+
+
+Query_tree binaryfy(Non_bi_tree tree){
+
+    /*
+    std::unordered_map<int, vector int > map2chr;
+    std::unordered_map<int, int> map2parent;
+	std::unordered_map<int, int> map2patthern;
+
+/////////////CONVERT TO//////////////////////
+
+	std::unordered_map<int, int> map2leftcdr;
+	std::unordered_map<int, int> map2rightcdr;
+	std::unordered_map<int, int> map2parent;
+	std::unordered_map<int, int> map2patthern;
+
+	std::vector<int> nodes_ordered; //unknown set as 0.
+    std::vector<int> terminals_index; //the position of n terminals in the ordered nodes
+    std::vector<int> junction_index; //the position of (n-1) junction nodes
+    std::vector<int> junctions;
+    std::vector<int> terminals;
+	std::vector<int> patterns;//the type of nodes
+
+	*/
+
+    Query_tree bi_tree;
+
+    unordered_map<int, int> map2leftcdr;
+	unordered_map<int, int> map2rightcdr;
+	unordered_map<int, int> map2parent;
+	unordered_map<int, int> map2pattern;
+
+	vector<int> nodes_ordered; //unknown set as 0.
+    vector<int> terminals_index; //the position of n terminals in the ordered nodes
+    vector<int> junction_index; //the position of (n-1) junction nodes
+    vector<int> junctions;
+    vector<int> terminals;
+	vector<int> patterns;//the type of nodes
+
+
+
+    //STEP1: prepare variables
+    map2pattern = tree.map2pattern;
+
+	int new_node_id = 0;
+	for (auto it : tree.map2chr){
+	    if (it.first > new_node_id){
+            new_node_id = it.first;
+	    }
+	}
+	new_node_id ++;
+	//new_node_id is now a safe id that is not any used label
+
+	int root;
+    unordered_set<int> terminalset;
+	unordered_set<int> junctionset;
+	//decide what are the terminals and root:
+	for (auto it: tree.map2pattern){
+        if (tree.map2chr.find(it.first)==tree.map2chr.end()){ //any node that does not have chr is a terminal
+            terminalset.insert(it.first);
+        }
+        if (tree.map2parent.find(it.first)== tree.map2parent.end())
+            root = it.first;
+	}
+
+
+    //build a binary tree structure mapping, and decide what are the junction nodes
+    for (auto it : tree.map2chr){
+        int node = it.first;
+        int left_child, right_child;
+        while (it.second.size()>= 2){ //more then 2 children: insert dummy node
+                left_child = it.second.back();
+                it.second.pop_back();
+                right_child = it.second.back();
+                it.second.pop_back();
+                int dummy_node = new_node_id;
+                new_node_id ++; //update new_node_id after using it as new label, to make sure it is always safe
+                map2leftcdr[dummy_node] = left_child;
+                map2rightcdr[dummy_node] = right_child;
+                map2parent[left_child] = dummy_node;
+                map2parent[right_child] = dummy_node;
+                it.second.push_back(dummy_node);  //delete two children, add dummy node as a children
+        }
+        if (it.second.size()< 2){ //always true after the while loop.
+            if (it.second.size()== 2){
+                left_child = it.second[0];
+                right_child = it.second[1];
+                map2leftcdr[node] = left_child;
+                map2rightcdr[node] = right_child;
+                map2parent[left_child] = node;
+                map2parent[right_child] = node;
+                junctionset.insert(node);
+            }
+            if (it.second.size() == 1){//path node
+                left_child = it.second[0];
+                map2leftcdr[node] = left_child;
+                map2parent[left_child] = node;
+            }
+            if (it.second.size() == 0){
+                int error_inst;
+                cout << "warning!! list of children is empty, invalid tree input."<<endl;
+                cin >> error_inst;
+            }
+        }
+    }
+
+    //STEP2: traverse from root down in reverse-post-order
+    nodes_ordered = reverse_postorder(root, map2leftcdr, map2rightcdr);
+    reverse(nodes_ordered.begin(), nodes_ordered.end());
+
+    //STEP3: by this pose-order, count index of terminals and junctions and patterns
+    int i;
+    for (i = 1; i<nodes_ordered.size(); i++){
+        patterns.push_back(map2pattern[nodes_ordered[i]]);
+        if (terminalset.find(nodes_ordered[i])!=terminalset.end()){
+            terminals_index.push_back(i);
+            terminals.push_back(nodes_ordered[i]);
+        }
+        if (junctionset.find(nodes_ordered[i])!=junctionset.end()){
+            junction_index.push_back(i);
+            junctions.push_back(nodes_ordered[i]);
+        }
+    }
+    bi_tree.junctions = junctions;
+    bi_tree.junction_index = junction_index;
+    bi_tree.map2leftcdr = map2leftcdr;
+    bi_tree.map2parent = map2parent;
+    bi_tree.map2patthern = map2pattern;
+    bi_tree.map2rightcdr = map2rightcdr;
+    bi_tree.nodes_ordered = nodes_ordered;
+    bi_tree.patterns = patterns;
+    bi_tree.terminals = terminals;
+    bi_tree.terminals_index = terminals_index;
+    bi_tree.time = tree.time;
+
+    return bi_tree;
+
+}
+
+
+
+
 Query_tree sampleFrom(const graph_t& g, int seed_node, int shape){
 //sample a height 3 binary tree using seed_node as a root
 //if there exist terminals that satisfy, return query_tree; else return empty.
