@@ -919,20 +919,22 @@ vector<Instance_Tree> All_matching_trees_fixed(const graph_t& g, Query_tree_fixe
 	incompletetrees.push_back(incomplete_tree); //initialize with first terminal
 	while(incompletetrees.size() != 0){
         //for those that can never complete?
+        cout <<"incomplete trees size:"<<incompletetrees.size()<<endl;
 
-		if (incompletetrees.size() > mem) mem ++;
 		//mem is the maximum lenghth that incompletetrees has reached.
         //while there still is incomplete trees, pop out one instance and grow that one
 		incomplete_tree = incompletetrees.back();
 		incompletetrees.pop_back();
 		modified_trees = expend_withcheck(g, vertex2node, node2layers, querytree, incomplete_tree, numtrees);
 		totalTrees += modified_trees.size();
-
+        if (modified_trees.size() > mem) mem = modified_trees.size();
 		//for modified_tree in modified_trees
 		for (int i=0; i<modified_trees.size(); i++){
+            numtrees ++;
             modified_tree = modified_trees[i];
 			if(modified_tree.nodes.size() == querytree.nodes_ordered.size()){ //already complete after the growth
 				complete_trees.push_back(modified_tree);
+				totalTrees ++;
 				//in bruteforce, number of memory always equals to number of trees.
 			}
             else{
@@ -1227,10 +1229,24 @@ QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& 
 
     //NOTICE: this simple TOP pop one by one may be slow, since we have to swipe k times, and check each step finishing a tree.
     //--if it turns out to be the case, consider recursive.
+
+
+    int mem_last = 0;
+    Instance_Tree temptree;
+    for (int i= 0; i< candidate_trees.size(); i++){
+        temptree = candidate_trees[i];
+        mem += temptree.nodes.size();
+    }
+
+    result.mem = max(mem_last, mem);
+
+
+    //result.mem = candidate_trees.size();
+
     TOPk_trees = Top_k_weight(candidate_trees);
     result.trees = TOPk_trees;
     result.numTrees = numtrees;
-    result.mem = mem;
+   // result.mem = mem;
     result.totalTrees = totalTrees;
     return result;
 }
