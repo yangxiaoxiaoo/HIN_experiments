@@ -22,6 +22,12 @@ vector<int> reverse_postorder(int root, unordered_map<int, int> map2leftcdr,
     return result;
 }
 
+/*
+Non_bi_tree_instance non_bi_instance(Instance_Tree binary_instance){
+
+}
+
+*/
 
 
 Query_tree binaryfy(Non_bi_tree tree){
@@ -160,6 +166,67 @@ Query_tree binaryfy(Non_bi_tree tree){
     return bi_tree;
 
 }
+
+
+
+//Unfinished
+vector<Shape> Auto_shapes(const graph_t& g, int seed_node, int shape){
+//automatically generate shapes. a shape is described by an adjacency matrix.
+    vector<Shape> shapelist;
+    for(int nodenum = 4; nodenum < 10 ;nodenum ++){
+
+    }
+
+    return shapelist;
+}
+
+
+//Unfinished
+vector<Query_tree> Auto_sampleFrom(const graph_t& g, int seed_node, Shape thisshape){
+//automatically generate a list of terminal sets with a given shape. No guarantee on existence of such subgraph
+//reach out from seed to the neighbors BFS way
+    vector<Query_tree> QTreelist;
+    Query_tree QTree;
+    //BFS from seed.
+
+    int curnode = thisshape.seed_index;
+
+    //for each curnode, use the child_count to tell if this is a terminal--if #child == 0, then it is.
+    //if degree>3, then this shape is not valid, return empty vector.
+    bool is_terminal = false;
+    int child_count = 0;
+    for (int i=0; i<thisshape.nodenum; i++){
+
+
+
+        if (thisshape.adj[curnode][i]){
+            if (QTree.map2parent[curnode] == i){ //this new found i is parent: do nothing.
+                continue;
+            }
+
+            if (child_count == 0){ //necer added before, add as left child
+                QTree.map2leftcdr[curnode] = i;
+                QTree.map2parent[i] = curnode;
+                child_count +=1;
+            }
+            if (child_count == 1){ //added once, add now as a right child
+                QTree.map2rightcdr[curnode] = i;
+                QTree.map2parent[i] = curnode;
+                child_count += 1;
+            }
+            if (child_count == 2){ //new found after having already two child. Illegal case
+                return QTreelist; //Return empty list.
+
+            }
+        }
+    }
+    if (child_count == 0){
+        is_terminal = true; //curnode is a terminal.
+    }
+}
+
+
+
 
 
 

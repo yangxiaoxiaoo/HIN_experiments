@@ -1,6 +1,135 @@
 #include "global.h"
 #include "algorithm"
 using namespace std;
+
+
+Query_tree readfromfile(char *fname){
+
+    Query_tree bi_tree;
+
+
+	std::ifstream infile(fname, std::ios::in);
+	if (!infile) {
+		std::cerr <<"can't open " << fname <<"\n";
+		assert(false);
+	}
+
+
+	int maxlen = 100000; int cnt = 0; int chatfreq = 2000000;
+	char buf[maxlen];
+
+	//read unordered_map<int, int> map2leftcdr
+	infile.getline(buf, maxlen);
+	if (infile.eof()) cout<<"wrong query format!"<<endl;
+	char* nums = strtok(buf, " ");
+	int num = atoi(nums);
+	char* pairs1;
+	char* pairs2;
+	for (int i= 0; i < num; i++){
+		pairs1 = strtok(NULL, " ");
+		pairs2 = strtok(NULL, " ");
+		bi_tree.map2leftcdr[atoi(pairs1)] = atoi(pairs2);
+	}
+
+	//read unordered_map<int, int> map2rightcdr;
+	infile.getline(buf, maxlen);
+	if (infile.eof()) cout<<"wrong query format!"<<endl;
+	nums = strtok(buf, " ");
+	num = atoi(nums);
+	for (int i= 0; i < num; i++){
+		pairs1 = strtok(NULL, " ");
+		pairs2 = strtok(NULL, " ");
+		bi_tree.map2rightcdr[atoi(pairs1)] = atoi(pairs2);
+	}
+
+	//read unordered_map<int, int> map2parent;
+	infile.getline(buf, maxlen);
+	nums = strtok(buf, " ");
+	num = atoi(nums);
+	for (int i= 0; i < num; i++){
+		pairs1 = strtok(NULL, " ");
+		pairs2 = strtok(NULL, " ");
+		bi_tree.map2parent[atoi(pairs1)] = atoi(pairs2);
+	}
+
+	//read 	vector<int> nodes_ordered;
+	infile.getline(buf, maxlen);
+	if (infile.eof()) cout<<"wrong query format!"<<endl;
+	nums = strtok(buf, " ");
+	num = atoi(nums);
+	char* node;
+	for (int i= 0; i < num; i++){
+		node = strtok(NULL, " ");
+		bi_tree.nodes_ordered.push_back(atoi(node));
+	}
+
+	//read vector<int> terminals_index;
+	infile.getline(buf, maxlen);
+	if (infile.eof()) cout<<"wrong query format!"<<endl;
+	nums = strtok(buf, " ");
+	num = atoi(nums);
+	char* index;
+	for (int i= 0; i < num; i++){
+		index = strtok(NULL, " ");
+		bi_tree.terminals_index.push_back(atoi(index));
+	}
+
+
+	//read vector<int> vector<int> terminals;
+	infile.getline(buf, maxlen);
+	if (infile.eof()) cout<<"wrong query format!"<<endl;
+	nums = strtok(buf, " ");
+	num = atoi(nums);
+
+	for (int i= 0; i < num; i++){
+		node = strtok(NULL, " ");
+		bi_tree.terminals.push_back(atoi(node));
+	}
+
+	//vector<int> junction_index;
+	infile.getline(buf, maxlen);
+	if (infile.eof()) cout<<"wrong query format!"<<endl;
+	nums = strtok(buf, " ");
+	num = atoi(nums);
+	for (int i= 0; i < num; i++){
+		index = strtok(NULL, " ");
+		bi_tree.junction_index.push_back(atoi(index));
+	}
+
+	//read vector<int>   vector<int> junctions;
+	infile.getline(buf, maxlen);
+	if (infile.eof()) cout<<"wrong query format!"<<endl;
+	nums = strtok(buf, " ");
+	num = atoi(nums);
+	for (int i= 0; i < num; i++){
+		node = strtok(NULL, " ");
+		bi_tree.junctions.push_back(atoi(node));
+	}
+
+	//vector<int> patterns;
+	infile.getline(buf, maxlen);
+	if (infile.eof()) cout<<"wrong query format!"<<endl;
+	nums = strtok(buf, " ");
+	num = atoi(nums);
+	for (int i= 0; i < num; i++){
+		node = strtok(NULL, " ");
+		bi_tree.patterns.push_back(atoi(node));
+	}
+
+	unordered_map<int, int> map2pattern;
+	for (int i = 0; i < bi_tree.nodes_ordered.size(); i++){
+		map2pattern[bi_tree.nodes_ordered[i]] = bi_tree.patterns[i];
+	}
+	bi_tree.map2patthern = map2pattern;
+
+
+
+
+	return bi_tree;
+
+}
+
+
 //Loads the graph: index should be continuous. But edge list does not need to be sorted.
 graph_t load_graph(char *fname, vector<pair<int, int>> &edge_list) {
 	graph_t g;

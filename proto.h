@@ -4,7 +4,8 @@
 /*
 	utils.cc
 */
-
+std::vector<Shape> Auto_shapes(const graph_t& g, int seed_node, int shape);
+std::vector<Query_tree> Auto_sampleFrom(const graph_t& g, int seed_node, Shape thisshape);
 Query_tree binaryfy(Non_bi_tree tree);
 std::vector<int> reverse_postorder(int root, std::unordered_map<int, int> map2leftcdr,
 	std::unordered_map<int, int> map2rightcdr);
@@ -25,6 +26,7 @@ std::unordered_map<int, std::unordered_set<int>> Retrieve_children(Query_tree QT
 /*
 	io.cc
 */
+Query_tree readfromfile(char *fname);
 graph_t load_graph(char *fname, std::vector<std::pair<int, int>> &edge_list);
 void print2Screen(QueryResult qResult, double timeDiff);
 void print2File(QueryResult qResult, double timeDiff, std::ofstream& ofs);

@@ -29,7 +29,7 @@
 #include <unistd.h>
 #include <map>
 #define MAX_WEIGHT 1000000
-#define TOP_K 5
+#define TOP_K 20
 #define WITH_ORACLE true
 #define WITHOUT_ORACLE false
 typedef struct Query{
@@ -50,6 +50,15 @@ typedef struct GeneralizedQuery{ //generalized, reusable query allowing src and 
 }GeneralizedQuery;
 
 typedef std::pair<int, int> Edge;
+
+
+typedef struct Shape{
+    int shape_index; //just a name index of what shape it is for convenience
+    int seed_index; //which node is seed
+    int adj[100][100];
+    int nodenum;
+    }Shape;
+//the first nodenum row and column in adj is the adjacency matrix of this shape
 
 
 
