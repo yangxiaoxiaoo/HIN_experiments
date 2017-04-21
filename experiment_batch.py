@@ -46,11 +46,11 @@ def repeat_for_shape(shape_choose, number, infile, seedfile):
                 if len(seen_seeds) >= number:
                     break
 
-def repeat_baseline2(shape_choose, number, infile, skip):
+def repeat_baseline2(optimization, shape_choose, number, infile, skip):
 #skip: if I want to skip those that has already 3 lines
     datasetname = infile.split('/')[1]
     seed = 0
-    dir = "./"+datasetname+"outputs/output"+str(shape_choose)
+    dir = "./"+optimization + datasetname+"outputs/output"+str(shape_choose)
     Processed = os.listdir(dir)
     for file in Processed:
         i = 0
@@ -69,23 +69,42 @@ def repeat_baseline2(shape_choose, number, infile, skip):
 
 
 def main():
-   # repeat_for_shape(1, 100, "./Enron/enron_graph.wgt.norm")
-   # repeat_for_shape(4, 2000, "./DBLP/dblp_graph.new.wgt")
 
-  #  shapelist = [1, 2, 7, 5]
-    shapelist = [1, 2,  5, 6, 7]
+    opt = 'O3_' #When changing here, also need to change at Makefile
+
+    shapelist = [1, 2, 6]
     for shape in shapelist:
-        repeat_baseline2(shape, 300, "./Enron/enron_graph.wgt.norm", skip=False)
-        repeat_baseline2(shape, 300, "./DBLP/dblp_graph.new.wgt", skip=False)
-        repeat_baseline2(shape, 300, "./PhotoNet/graph_prank.graph_new.graph", skip=False)
-        repeat_baseline2(shape, 300, "./YelpPhoto/yelp_review_tip_photos.graph_new.graph", skip=False)
-        
+        repeat_baseline2(opt, shape, 300, "./Enron/enron_graph.wgt.norm", skip=False)
+
+    shapelist = [1, 2, 5, 6, 7]
+    for shape in shapelist:
+
+        repeat_baseline2(opt, shape, 300, "./DBLP/dblp_graph.new.wgt", skip=False)
+        repeat_baseline2(opt, shape, 300, "./PhotoNet/graph_prank.graph_new.graph", skip=False)
+        repeat_baseline2(opt, shape, 300, "./YelpPhoto/yelp_review_tip_photos.graph_new.graph", skip=False)
+
+
  #       repeat_for_shape(shape, 300, "./YelpPhoto/yelp_review_tip_photos.graph_new.graph", "./YelpPhoto/seedranks.dat")
   #      repeat_for_shape(shape, 300, "./PhotoNet/graph_prank.graph_new.graph", "./PhotoNet/seedranks.dat")
-
  #       repeat_for_shape(shape, 300, "./Enron/enron_graph.wgt.norm", "./Enron/seedranks.dat")
 
 
+def auto_query_main():
+    #after March submission, we explicitly store generated queries for mining purposes.
+
+   # datasets = ['Enron', 'PhotoNet', 'DBLP', 'YelpPhoto']
+    datasets = ['Enron']
+    for dataset in datasets:
+        query_dir =  dataset + '/queries'
+        outdir = dataset + '/auto_outputs'
+        infile = "./Enron/enron_graph.wgt.norm"
+        for queryfile in os.listdir(query_dir):
+            outfile = os.path.join(outdir, queryfile)
+            subprocess.call(["./pro-heaps", infile, os.path.join(query_dir,queryfile), outfile])
+
 if __name__ == "__main__":
-    main()
+    #main()
+
+    #redesigned experiments after March submission
+    auto_query_main()
 
