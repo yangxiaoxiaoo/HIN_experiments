@@ -1,5 +1,6 @@
 import random
 import networkx as nx
+import sys
 
 def gen_adj(n): #generate a list of template of size n
 
@@ -272,7 +273,7 @@ def output_tree(adj, patterns, terminalmap,  map2left, map2right, map2parent, ju
             fout.write(' ' + str(item))
         fout.write('\n')
 
-        #line 8: terminals
+        #line 8: junctions
         fout.write(str(len(junctions)))
         for item in junctions:
             fout.write(' ' + str(item))
@@ -287,6 +288,7 @@ def output_tree(adj, patterns, terminalmap,  map2left, map2right, map2parent, ju
         fout.write(str(adj) + '\n')
 
 def test():
+    #test functionality implemented in this file
     adj = gen_adj(5)
     print adj
     g, dictype = load_graph_struct("./Enron/enron_graph.wgt.norm")
@@ -294,6 +296,8 @@ def test():
     prefix = "./Enron/"
     seedfile = prefix + "seedranks.dat"
     grow_from_seed(5, 1, adj, g, seedfile, dictype, 1, prefix, 1)
+
+
 
 
 def main():

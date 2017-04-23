@@ -96,10 +96,10 @@ def auto_query_main():
     datasets = ['Enron']
     for dataset in datasets:
         query_dir =  dataset + '/queries'
-        outdir = dataset + '/auto_outputs'
+        outdir = dataset + '/auto_outputs/'
         infile = "./Enron/enron_graph.wgt.norm"
         for queryfile in os.listdir(query_dir):
-            outfile = os.path.join(outdir, queryfile)
+            outfile =outdir + queryfile
             subprocess.call(["./pro-heaps", infile, os.path.join(query_dir,queryfile), outfile])
 
 if __name__ == "__main__":

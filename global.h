@@ -227,7 +227,15 @@ typedef struct ProphetEntry{
 
 inline float calcWgt(std::vector<float> edgeVal, float queryTime){
 /*Weight is static*/
+
+    float weight = edgeVal[0];
+    std::cout<< "weight calculated: " << weight;
+    if ( weight < 0.00001) return 10000;
+    else return weight;
+	//weight is static.
+
 #ifdef STATIC_WGT
+    cout<< "weight calculated: " << edgeVal[0];
 	return edgeVal[0];//weight is static.
 #endif
 /*For DBLP*/
