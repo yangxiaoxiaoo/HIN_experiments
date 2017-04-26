@@ -100,7 +100,7 @@ def auto_query_main():
         infile = "./Enron/enron_graph.wgt.norm"
         for queryfile in os.listdir(query_dir):
             outfile =outdir + queryfile
-            subprocess.call(["./pro-heaps", infile, os.path.join(query_dir,queryfile), outfile])
+            run(["./pro-heaps", infile, os.path.join(query_dir,queryfile), outfile], 300)
 
 if __name__ == "__main__":
     #main()

@@ -115,7 +115,7 @@ def grow_from_seed(N, repeat, adj, g, seedfile, v2type, sample, prefix, seedamou
                 map2right = []
                 map2parent = []
                 terminalmap = dict()
-                patterns = []
+                patterns = [0 for a in range(N)]
                 junctions = []
                 rootnode = n-1  #start from the root
                 queue = [[rootnode, seed]]
@@ -126,7 +126,9 @@ def grow_from_seed(N, repeat, adj, g, seedfile, v2type, sample, prefix, seedamou
                     print current
                     curnode = current[0]
                     curvertex = current[1]
-                    patterns.append(v2type[curvertex])
+                    patterns[curnode] = v2type[curvertex]
+                    print "pattern added for node"
+                    print curnode
                     if isterminal(curnode, adj):
                         terminalmap[curnode] = curvertex
                     else:
@@ -144,7 +146,8 @@ def grow_from_seed(N, repeat, adj, g, seedfile, v2type, sample, prefix, seedamou
 
                             else:
                                 if seen_child_count[curnode] == 1: #have seen it once, assign to the left
-                                    junctions.append(curnode)
+                                    if curnode not in junctions:
+                                        junctions.append(curnode)
                                     #map2left[curnode] = node
                                     map2left += [curnode, node]
                                     #map2parent[node] = curnode
@@ -156,7 +159,7 @@ def grow_from_seed(N, repeat, adj, g, seedfile, v2type, sample, prefix, seedamou
                                 else: #have seen it twice,
                                     print "Warning: seeing a 3rd children, check tree structure!"
 
-                patterns.reverse()
+
                 junctions.reverse()
                 outfile = prefix + 'queries/N' +str(N)+"repeat"+str(repeat)+ str(seed)+'_seeded_'+str(sample_index) + '.query'
                 output_tree(adj, patterns, terminalmap, map2right, map2left, map2parent, junctions, outfile)
@@ -304,7 +307,7 @@ def main():
     g, v2type = load_graph_struct("./Enron/enron_graph.wgt.norm")
     prefix = "./Enron/"
     seedfile = prefix + "seedranks.dat"
-    for n in range(6, 10):
+    for n in range(4, 6):
         #randomly sample one
         for repeat in range(5): #generate ramdonmly 100 times
             adj = gen_adj(n)

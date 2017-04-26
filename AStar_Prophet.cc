@@ -1279,9 +1279,8 @@ QueryResultTrees Bruteforce_modified(const graph_t& g, Query_tree querytree, dou
 
 
             if( (g.typeMap[querytree.nodes_ordered[querytree.terminals_index[i]]]!=querytree.patterns[querytree.terminals_index[i]])){
-                //cout << query.src << " to " << query.tgt << endl;
-                //cout << g.typeMap[query.src] << " and " << g.typeMap[query.tgt] << endl;
-     //           cout<< "src or tgt node does not follow pattern!" << endl;
+
+                cout<< "src or tgt node does not follow pattern!" << endl;
                 return qResultTree;
                 }
         }

@@ -47,7 +47,7 @@ int main (int argc, char **argv){
 
 	else{
         cout << -1 << "\t" << qResult1.mem << "\t" << qResult1.totalTrees << endl;
-       // return 0;
+        return 0;
 	}
 	cout << "#################################################"<< endl;
 
@@ -68,7 +68,7 @@ int main (int argc, char **argv){
 
 	else{
         cout << -1 << "\t" << qResult.mem << "\t" << qResult.totalTrees << endl;
-     //   return 0; //terminate when there is no instances: do not count those queries.
+        return 0; //terminate when there is no instances: do not count those queries.
 		}
 	cout << "#################################################"<< endl;
 
@@ -91,7 +91,7 @@ int main (int argc, char **argv){
 
 	else{
         cout << -1 << "\t" << qResult2.mem << "\t" << qResult2.totalTrees << endl;
-     //   return 0; //terminate when there is no instances: do not count those queries.
+        return 0; //terminate when there is no instances: do not count those queries.
 		}
 	cout << "#################################################"<< endl;
 
