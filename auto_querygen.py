@@ -1,6 +1,7 @@
 import random
 import networkx as nx
-import sys
+from networkx.algorithms import isomorphism
+
 
 def gen_adj(n): #generate a list of template of size n
 
@@ -300,9 +301,6 @@ def test():
     seedfile = prefix + "seedranks.dat"
     grow_from_seed(5, 1, adj, g, seedfile, dictype, 1, prefix, 1)
 
-
-
-
 def main():
     g, v2type = load_graph_struct("./Enron/enron_graph.wgt.norm")
     prefix = "./Enron/"
@@ -316,6 +314,68 @@ def main():
 
 
 
+
+
+import tree_gen
+
+class new_tree:
+
+    def loadgraph(self, path):
+        return load_graph_struct(path)
+
+    def terminal_list(self, tree):
+        terminals = []
+        for node in range(1, tree.number_of_nodes()+1):
+            if tree.degree(node)== 1:
+                terminals.append(node)
+        return terminals
+
+    def is_all_terminals_repeated(self, mapping, threshold, tree, vertex_appearance_tracker):
+        #return true when all terminals has been mapped more then threshold times
+
+        terminal_list = self.terminal_list(tree)
+
+        for vertex, node in mapping.iteritems():
+            if node in terminal_list:
+                if vertex_appearance_tracker[(node, vertex)] < threshold:
+                    return False
+                #return false if any terminal nodes haven't appeared more then threshold times
+        return True
+
+
+    def new_tree_match(self, G, tree, threshold):
+        #use new tree matching algorithm to return tree template's matching subgraph in G
+        #seed not fixed as root, but any 3-degree node in the tree
+        #use those templete where all terminals have appeared more then threshold times
+
+        GM = isomorphism.GraphMatcher(G, tree)
+
+        vertex_appearance_tracker = dict()
+        for mapping in GM.subgraph_isomorphisms_iter():
+            print mapping
+            for vertex, node in mapping.iteritems():
+                if (node, vertex) not in vertex_appearance_tracker:
+                    vertex_appearance_tracker[(node, vertex)] = 1
+                else:
+                    vertex_appearance_tracker[(node, vertex)] += 1
+
+            if self.is_all_terminals_repeated(mapping, threshold, tree, vertex_appearance_tracker):
+                #write to the template files when all requrement satisfies
+                
+
+
+
+
+    def test_new_tree(self):
+        tree = tree_gen.gen_tree(5)
+        g, v2type = load_graph_struct("./Enron/enron_graph.wgt.norm")
+        self.new_tree_match(g, tree)
+
+
+
+
 if __name__ == '__main__':
-#    test()
-    main()
+    new_tree_test = new_tree()
+    new_tree_test.test_new_tree()
+
+#    main()
