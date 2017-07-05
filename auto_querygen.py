@@ -342,8 +342,103 @@ class new_tree:
                 #return false if any terminal nodes haven't appeared more then threshold times
         return True
 
+    def sort_left_right(self, pair, post_order_nodes):
+        if post_order_nodes.index(pair[0]) < post_order_nodes.index(pair[1]):
+            return pair[0], pair[1]
+        else:
+            return pair[1], pair[0]
 
-    def new_tree_match(self, G, tree, threshold):
+    def template_output(self, mapping, tree, v2type, outfile):
+
+        node2vertex = {}
+        for k, v in mapping.iteritems():
+            node2vertex[v] = k
+
+        tree_inG = nx.relabel_nodes(tree, node2vertex) #use the ISO subgraph made of verteces
+
+        root = 0
+        for node in tree_inG.nodes():
+            if tree_inG.degree(node) == 2:
+                root = node
+                break
+        assert root != 0
+        nodes =list(nx.dfs_postorder_nodes(tree_inG, root))
+        print nodes
+
+        map2children = nx.bfs_successors(tree_inG, root) #will branch into left and right later
+        map2parent = nx.bfs_predecessors(tree_inG, root)
+        map2left = {}
+        map2right = {}
+        for key, value in map2children.iteritems():
+            assert len(value) <= 2 #binary tree assertion
+            if len(value) == 2:
+                map2left[key], map2right[key] = self.sort_left_right(value, nodes)
+
+        terminals = []
+        terminal_index = []
+        junctions = []
+        junction_index = []
+        for index in range(len(nodes)):
+            if tree_inG.degree(nodes[index]) == 1:
+                terminal_index.append(index)
+                terminals.append(nodes[index])
+            if tree_inG.degree(nodes[index]) == 3:
+                junction_index.append(index)
+                junctions.append(nodes[index])
+
+        patterns = [v2type[x] for x in nodes]
+
+        with open(outfile, 'w') as fout:
+            #line 1: map to the left child
+            fout.write(str(len(map2left)))
+            for k, v in map2left.iteritems():
+                fout.write(' ' + str(k) + ' ' + str(v))
+            fout.write('\n')
+            #line 2: map to the right child
+            fout.write(str(len(map2right)))
+            for k, v in map2right.iteritems():
+                fout.write(' ' + str(k) + ' ' + str(v))
+            fout.write('\n')
+            #line 3 map to parent
+            fout.write(str(len(map2parent)))
+            for k, v in map2parent.iteritems():
+                fout.write(' ' + str(k) + ' ' + str(v))
+            fout.write('\n')
+            #line 4: nodes
+            fout.write(str(len(nodes)))
+            for item in nodes:
+                fout.write(' ' + str(item))
+            fout.write('\n')
+            #line 5: terminal index
+            fout.write(str(len(terminal_index)))
+            for item in terminal_index:
+                fout.write(' ' + str(item))
+            fout.write('\n')
+            #line 6: terminals
+            fout.write(str(len(terminals)))
+            for item in terminals:
+                fout.write(' ' + str(item))
+            fout.write('\n')
+            #line 7: junction index
+            fout.write(str(len(junction_index)))
+            for item in junction_index:
+                fout.write(' ' + str(item))
+            fout.write('\n')
+            #line 8: junctions
+            fout.write(str(len(junctions)))
+            for item in junctions:
+                fout.write(' ' + str(item))
+            fout.write('\n')
+            #line 8: patterns
+            fout.write(str(len(patterns)))
+            for item in patterns:
+                fout.write(' ' + str(item))
+            fout.write('\n')
+            #############write a line of metadata
+
+
+
+    def new_tree_match(self, G, v2type, tree, threshold, outfile_prefix, repeat):
         #use new tree matching algorithm to return tree template's matching subgraph in G
         #seed not fixed as root, but any 3-degree node in the tree
         #use those templete where all terminals have appeared more then threshold times
@@ -351,8 +446,9 @@ class new_tree:
         GM = isomorphism.GraphMatcher(G, tree)
 
         vertex_appearance_tracker = dict()
+        outputcount = 1
         for mapping in GM.subgraph_isomorphisms_iter():
-            print mapping
+
             for vertex, node in mapping.iteritems():
                 if (node, vertex) not in vertex_appearance_tracker:
                     vertex_appearance_tracker[(node, vertex)] = 1
@@ -360,16 +456,23 @@ class new_tree:
                     vertex_appearance_tracker[(node, vertex)] += 1
 
             if self.is_all_terminals_repeated(mapping, threshold, tree, vertex_appearance_tracker):
+                print mapping
                 #write to the template files when all requrement satisfies
-                
-
-
+                self.template_output(mapping, tree, v2type, outfile_prefix + str(outputcount))
+                outputcount += 1
+                if outputcount > repeat:
+                    break
 
 
     def test_new_tree(self):
-        tree = tree_gen.gen_tree(5)
+
+        N = 5
+        tree = tree_gen.gen_tree(N)
+        print tree.edges()
+        print nx.bfs_predecessors(tree, 1)
+        print nx.bfs_successors(tree, 1)
         g, v2type = load_graph_struct("./Enron/enron_graph.wgt.norm")
-        self.new_tree_match(g, tree)
+        self.new_tree_match(g, v2type, tree, threshold=3, outfile_prefix="./Enron/new_queries/N"+str(N)+'/', repeat=2000)
 
 
 
