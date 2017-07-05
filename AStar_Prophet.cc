@@ -949,7 +949,8 @@ vector<Instance_Tree> All_matching_trees_fixed(const graph_t& g, Query_tree_fixe
 
 //given a backbone instance, return the matching left_subtree as a usable query. all given nodes viewed as terminals
 Query_tree_fixed left_from_backbone(int rootpos, Query_tree querytree, Query BackboneQuery, Path backboneinstance){
-	Query_tree_fixed result;
+	Query_tree_fixed* result_pos = new Query_tree_fixed;
+	Query_tree_fixed result = *result_pos;
 	int root = querytree.nodes_ordered.back();
 	if (querytree.map2leftcdr.find(root)!= querytree.map2leftcdr.end()){ //root has a left child
 		int leftchild = querytree.map2leftcdr[root];
@@ -958,12 +959,12 @@ Query_tree_fixed left_from_backbone(int rootpos, Query_tree querytree, Query Bac
 			result.nodes_ordered.push_back(querytree.nodes_ordered[i]); //nodes before leftchild (including)
 			result.patterns.push_back(querytree.patterns[i]); //patterns = querytree.patterns.cut at the leftchild
 		}
-		for (int i=0; i<= querytree.junction_index.size(); i++){
+		for (int i=0; i< querytree.junction_index.size(); i++){
 			if(querytree.junction_index[i]<=index){
 				result.junction_index.push_back(querytree.junction_index[i]);
 			}
 		}
-		for (int i=0; i<= querytree.terminals_index.size(); i++){
+		for (int i=0; i< querytree.terminals_index.size(); i++){
 			if(querytree.terminals_index[i]<=index){
 				result.terminals_index.push_back(querytree.terminals_index[i]);
 			}

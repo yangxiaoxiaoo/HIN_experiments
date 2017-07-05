@@ -1,4 +1,5 @@
 #include "global.h"
+#include <cassert>
 using namespace std;
 
 
@@ -1359,6 +1360,7 @@ vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree){ //only decompose 
     }
 
         cout<<non_touched_JT.size()<<"==make sure is 1" <<endl;
+        assert(non_touched_JT.size() == 1);
 
     return decomposed_queries;
 
