@@ -93,14 +93,18 @@ def auto_query_main():
     #after March submission, we explicitly store generated queries for mining purposes.
 
    # datasets = ['Enron', 'PhotoNet', 'DBLP', 'YelpPhoto']
-    datasets = ['Enron']
-    for dataset in datasets:
-        query_dir =  dataset + '/queries'
-        outdir = dataset + '/auto_outputs/'
-        infile = "./Enron/enron_graph.wgt.norm"
-        for queryfile in os.listdir(query_dir):
-            outfile =outdir + queryfile
-            run(["./pro-heaps", infile, os.path.join(query_dir,queryfile), outfile], 300)
+
+
+    for size in [7, 8]:
+        datasets = ['Enron']
+        for dataset in datasets:
+            query_dir =  dataset + '/new_queries/N' +str(size)
+            outdir = dataset + '/auto_outputs/N' +str(size) + '/'
+            infile = "./Enron/enron_graph.wgt.norm"
+            for queryfile in os.listdir(query_dir):
+                outfile = outdir + queryfile
+                print "trying outfile " + outfile
+                run(["./pro-heaps", infile, os.path.join(query_dir,queryfile), outfile], 460)
 
 if __name__ == "__main__":
     #main()

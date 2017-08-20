@@ -348,6 +348,12 @@ class new_tree:
         else:
             return pair[1], pair[0]
 
+    def if_onechild_onleft(self, parent, child, post_order_nodes):
+        if post_order_nodes.index(parent) < post_order_nodes.index(child):
+            return False
+        else:
+            return True
+
     def template_output(self, mapping, tree, v2type, outfile):
 
         node2vertex = {}
@@ -365,14 +371,32 @@ class new_tree:
         nodes =list(nx.dfs_postorder_nodes(tree_inG, root))
         print nodes
 
+
+
         map2children = nx.bfs_successors(tree_inG, root) #will branch into left and right later
         map2parent = nx.bfs_predecessors(tree_inG, root)
+        print "map to children is "
+        print map2children
+        print "map to parent is "
+        print map2parent
+
         map2left = {}
         map2right = {}
         for key, value in map2children.iteritems():
             assert len(value) <= 2 #binary tree assertion
             if len(value) == 2:
                 map2left[key], map2right[key] = self.sort_left_right(value, nodes)
+            if len(value) == 1:
+                is_left = self.if_onechild_onleft(key, value[0], nodes)
+                if is_left:
+                    map2left[key] = value[0]
+                else:
+                    map2right[key] = value[0]
+
+        print "map to left is "
+        print map2left
+        print "map to right is "
+        print map2right
 
         terminals = []
         terminal_index = []
@@ -385,6 +409,8 @@ class new_tree:
             if tree_inG.degree(nodes[index]) == 3:
                 junction_index.append(index)
                 junctions.append(nodes[index])
+        junction_index.append(len(nodes) -1) #append root as a special junction
+        junctions.append(root)
 
         patterns = [v2type[x] for x in nodes]
 
@@ -437,7 +463,6 @@ class new_tree:
             #############write a line of metadata
 
 
-
     def new_tree_match(self, G, v2type, tree, threshold, outfile_prefix, repeat):
         #use new tree matching algorithm to return tree template's matching subgraph in G
         #seed not fixed as root, but any 3-degree node in the tree
@@ -464,13 +489,12 @@ class new_tree:
                     break
 
 
-    def test_new_tree(self):
+    def test_new_tree(self, N):
 
-        N = 5
+
         tree = tree_gen.gen_tree(N)
         print tree.edges()
-        print nx.bfs_predecessors(tree, 1)
-        print nx.bfs_successors(tree, 1)
+
         g, v2type = load_graph_struct("./Enron/enron_graph.wgt.norm")
         self.new_tree_match(g, v2type, tree, threshold=3, outfile_prefix="./Enron/new_queries/N"+str(N)+'/', repeat=2000)
 
@@ -479,6 +503,7 @@ class new_tree:
 
 if __name__ == '__main__':
     new_tree_test = new_tree()
-    new_tree_test.test_new_tree()
+
+    new_tree_test.test_new_tree(6)
 
 #    main()
