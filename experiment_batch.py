@@ -96,15 +96,18 @@ def auto_query_main():
 
 
     for size in [7, 8]:
-        datasets = ['Enron']
+        datasets = ['PhotoNet']
         for dataset in datasets:
             query_dir =  dataset + '/new_queries/N' +str(size)
             outdir = dataset + '/auto_outputs/N' +str(size) + '/'
-            infile = "./Enron/enron_graph.wgt.norm"
+            #infile = "./Enron/enron_graph.wgt.norm"
+            #infile = "./DBLP/dblp_graph.new.wgt"
+            infile = "./PhotoNet/graph_prank.graph_new.graph"
             for queryfile in os.listdir(query_dir):
                 outfile = outdir + queryfile
-                print "trying outfile " + outfile
-                run(["./pro-heaps", infile, os.path.join(query_dir,queryfile), outfile], 460)
+                if not os.path.isfile(outfile + ".result.txt"):
+                    print "trying outfile " + outfile
+                    run(["./pro-heaps", infile, os.path.join(query_dir,queryfile), outfile], 700)
 
 if __name__ == "__main__":
     #main()

@@ -495,8 +495,14 @@ class new_tree:
         tree = tree_gen.gen_tree(N)
         print tree.edges()
 
-        g, v2type = load_graph_struct("./Enron/enron_graph.wgt.norm")
-        self.new_tree_match(g, v2type, tree, threshold=3, outfile_prefix="./Enron/new_queries/N"+str(N)+'/', repeat=2000)
+      #  g, v2type = load_graph_struct("./Enron/enron_graph.wgt.norm")
+       # self.new_tree_match(g, v2type, tree, threshold=3, outfile_prefix="./Enron/new_queries/N"+str(N)+'/', repeat=2000)
+
+       # g, v2type = load_graph_struct("./DBLP/dblp_graph.new.wgt")
+       # self.new_tree_match(g, v2type, tree, threshold=4, outfile_prefix="./DBLP/new_queries/N"+str(N)+'/', repeat=2000)
+
+      #  g, v2type = load_graph_struct("./PhotoNet/graph_prank.graph_new.graph")
+       # self.new_tree_match(g, v2type, tree, threshold=4, outfile_prefix="./PhotoNet/new_queries/N"+str(N)+'/', repeat=2000)
 
 
 
@@ -504,6 +510,6 @@ class new_tree:
 if __name__ == '__main__':
     new_tree_test = new_tree()
 
-    new_tree_test.test_new_tree(6)
+    new_tree_test.test_new_tree(5)
 
 #    main()
