@@ -8,6 +8,87 @@ using namespace std;
 //query is specified in test main().
 
 
+/*
+int main (int argc, char **argv){
+//temp main Oct 17 experiments
+
+    char *in_fname = argv[1];
+    char *qfname = argv[2];
+
+	double timeDiff = 0.0;
+	double pTime1 = 0, pTime2 = 0;//time for establishing prophet graph.
+	struct timeval start_before_load,start, time1, time2, time3, time4, startQuery, endQuery;
+	gettimeofday(&start_before_load,NULL);
+
+	PrunedLandmarkLabeling<> pll;
+	vector<pair<int, int>> edge_list;
+
+	graph_t G = load_graph(in_fname, edge_list);//loading the graph.
+	cout << "# nodes: " << G.n << ".  # edges: " << G.neighbors.size()/2 << endl;
+	gettimeofday(&start,NULL);
+	Query_tree testQTree = readfromfile(qfname);
+
+
+  /////////////COMPARISON////////////////
+
+	gettimeofday(&time1, NULL);
+
+    QueryResultTrees qResult1 = Bruteforce_modified(G,testQTree,pTime2);
+    gettimeofday(&time2, NULL);
+	//numtree = qResult1.numTrees; //the search space: number of trees generated
+	double timeDiff1 = (time2.tv_sec + double(time2.tv_usec)/1000000) - (time1.tv_sec + double(time1.tv_usec)/1000000);
+
+    if(qResult1.trees.size()>0){
+        for (int i=0; i<qResult1.trees.size(); i++){
+                cout  <<i<<" th lightest tree has weight: "<< qResult1.trees[i].wgt << "\t" << qResult1.mem << "\t" <<qResult1.numTrees<< "\t" << qResult1.totalTrees << "\t" <<"time--"<<timeDiff1<<endl;
+        }
+    }
+
+	else{
+        cout << -1 << "\t" << qResult1.mem << "\t" << qResult1.totalTrees << endl;
+        return 0;
+	}
+	cout << "#################################################"<< endl;
+
+
+
+
+	string outputFile(argv[3]);
+	string tmpstr = outputFile +".result.txt";
+	ofstream ofs0 (tmpstr.c_str(), std::ofstream::out);//creating output stream.
+
+	/////////////baseline 1 output all instance's node card
+	print2FileTree(qResult1, timeDiff1, ofs0) ;
+	int card1 = 0;
+	if(qResult1.trees.size()>0){
+        for (int i=0; i<qResult1.trees.size(); i++){
+                cout  <<i<<" th lightest tree has weight: "<< qResult1.trees[i].wgt << "\t" << qResult1.mem << "\t" <<qResult1.numTrees<< "\t" << qResult1.totalTrees << "\t" <<"time--"<<timeDiff1<<endl;
+                card1 = qResult1.trees[i].nodes.size();
+                ofs0 << card1;
+                ofs0 << endl;
+        }
+    }
+
+
+	if(pTime1 != 0)
+		ofs0<< "\t" << pTime1 << endl;
+	else if(pTime2 !=0 )
+		ofs0<< "\t" << pTime2 << endl;
+	else
+		ofs0 << endl;
+	ofs0.flush();
+
+	ofs0.close();
+
+
+    return 0;
+}
+
+*/
+
+
+// here is the old main before rewrite for Oct 17 quick experiment. Will recover once I am done.
+/*
 int main (int argc, char **argv){
 
     char *in_fname = argv[1];
@@ -27,6 +108,26 @@ int main (int argc, char **argv){
 	Query_tree testQTree = readfromfile(qfname);
 
 
+
+	gettimeofday(&time1, NULL);
+	//query the pattern
+    QueryResultTrees qResult = AStar_Prophet_Tree(G,testQTree,pTime2); //pTime2 is only useful if the weight depends on recency.
+
+    gettimeofday(&time2, NULL);
+	//int numtree = qResult.numTrees; //the search space: number of trees generated
+	timeDiff = (time2.tv_sec + double(time2.tv_usec)/1000000) - (time1.tv_sec + double(time1.tv_usec)/1000000);
+
+    if(qResult.trees.size()>0){
+        for (int i=0; i<qResult.trees.size(); i++){
+                cout  <<i<<" th lightest tree has weight: "<< qResult.trees[i].wgt << "\t" << qResult.mem << "\t" <<qResult.numTrees << "\t" << qResult.totalTrees << "\t" <<"time--"<<timeDiff<<endl;
+        }
+    }
+
+	else{
+        cout << -1 << "\t" << qResult.mem << "\t" << qResult.totalTrees << endl;
+        return 0; //terminate when there is no instances: do not count those queries.
+		}
+	cout << "#################################################"<< endl;
 
 
 
@@ -52,25 +153,6 @@ int main (int argc, char **argv){
 	cout << "#################################################"<< endl;
 
 
-	gettimeofday(&time1, NULL);
-	//query the pattern
-    QueryResultTrees qResult = AStar_Prophet_Tree(G,testQTree,pTime2); //pTime2 is only useful if the weight depends on recency.
-
-    gettimeofday(&time2, NULL);
-	//int numtree = qResult.numTrees; //the search space: number of trees generated
-	timeDiff = (time2.tv_sec + double(time2.tv_usec)/1000000) - (time1.tv_sec + double(time1.tv_usec)/1000000);
-
-    if(qResult.trees.size()>0){
-        for (int i=0; i<qResult.trees.size(); i++){
-                cout  <<i<<" th lightest tree has weight: "<< qResult.trees[i].wgt << "\t" << qResult.mem << "\t" <<qResult.numTrees << "\t" << qResult.totalTrees << "\t" <<"time--"<<timeDiff<<endl;
-        }
-    }
-
-	else{
-        cout << -1 << "\t" << qResult.mem << "\t" << qResult.totalTrees << endl;
-        return 0; //terminate when there is no instances: do not count those queries.
-		}
-	cout << "#################################################"<< endl;
 
 
 
@@ -137,7 +219,7 @@ int main (int argc, char **argv){
 
     return 0;
 }
-
+*/
 
 
 //select query number from a template
@@ -374,8 +456,10 @@ int trans_seed = 0;
 
     return 0;
 }
+*/
 
-/*********
+//here is the path main
+
 int main (int argc, char **argv) {
 
 	char *in_fname = argv[1];
@@ -490,7 +574,7 @@ int main (int argc, char **argv) {
 //                              This is the method in the WWW paper (PRO-HEAPS).
 //				cout << "10) A Star search with Prophet set...." << endl;
 				qResult = AStar_Prophet(G,testQ,pTime2);
-				check_path_wgt(qResult.paths, G, testQ);
+			//	check_path_wgt(qResult.paths, G, testQ);
 
 				break;
 			case 11:
@@ -518,8 +602,8 @@ int main (int argc, char **argv) {
 		else
 			ofs0 << endl;
 		ofs0.flush();
-
-/*		gettimeofday(&endQuery, NULL);
+		/*
+		gettimeofday(&endQuery, NULL);
 		timeDiff = (endQuery.tv_sec + double(endQuery.tv_usec)/1000000) - (startQuery.tv_sec + double(startQuery.tv_usec)/1000000);
 		if (timeDiff > 3600*12)
 			queryNum = 4;
@@ -529,11 +613,11 @@ int main (int argc, char **argv) {
 			queryNum = 48;
 		else if(timeDiff*1000 > 3600*48)
 			queryNum = 100;*/
-/**********
+
 	}//end of reading query file.
 	ofs0.close();
 
 	return 0;
 }
 
-***********/
+

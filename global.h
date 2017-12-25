@@ -28,10 +28,12 @@
 #include <assert.h>
 #include <unistd.h>
 #include <map>
-#define MAX_WEIGHT 1000000
-#define TOP_K 20
+#define MAX_WEIGHT 100000000
+#define TOP_K 800000
 #define WITH_ORACLE true
 #define WITHOUT_ORACLE false
+#define SAFE_LIFT 1000000
+
 typedef struct Query{
 	int src;
 	int tgt;
@@ -154,6 +156,23 @@ typedef struct Instance_Tree{
 
 }Instance_Tree;
 
+typedef struct Instance_Tree_rep{
+    //when I see a seen node, call it a different name and insert as unseen.
+    std::unordered_map<int, int> map2leftcdr;
+	std::unordered_map<int, int> map2rightcdr;
+	std::unordered_map<int, int> map2parent;
+
+	std::unordered_set<int> nodes;
+	float wgt;
+	int repeat;
+
+}Instance_Tree_rep;
+
+
+
+
+
+
 
 typedef struct PQEntity_AStar{
         int nodeIdx;
@@ -229,7 +248,7 @@ inline float calcWgt(std::vector<float> edgeVal, float queryTime){
 /*Weight is static*/
 
     float weight = edgeVal[0];
-    std::cout<< "weight calculated: " << weight;
+//    std::cout<< "weight calculated: " << weight;
     if ( weight < 0.00001) return 10000;
     else return weight;
 	//weight is static.
