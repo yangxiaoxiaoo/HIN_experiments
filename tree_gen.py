@@ -1,4 +1,5 @@
 import networkx as nx
+import random
 
 class UF:
     def __init__(self, nodes):
@@ -92,9 +93,50 @@ def gen_tree(N):
     assert edges_remaining == 0
     return graph
 
+def random_bintree(nodes):
+    N = len(nodes)
+    if N == 0:
+        return None
+    if N == 1:
+        return {'head': nodes[0], 'left': None, 'right': None}
+    #print nodes
+    #random.shuffle(nodes)
+    root = nodes[0]
+    rest = nodes[1:]
+    left_count = random.randint(0, N - 1)
+    right_count = N - 1 - left_count
+    left_nodes = rest[:left_count]
+    right_nodes = rest[left_count:]
+    left_tree = random_bintree(left_nodes)
+    right_tree = random_bintree(right_nodes)
+    tree = {'head': root, 'left': left_tree, 'right': right_tree}
+    return tree
+
+def dict_tree_to_graph(d, G):
+    if d is None:
+        return
+    if d['left'] is not None:
+        dict_tree_to_graph(d['left'], G)
+        G.add_edge(d['head'], d['left']['head'])
+    if d['right'] is not None:
+        dict_tree_to_graph(d['right'], G)
+        G.add_edge(d['head'], d['right']['head'])
+
+    return
+
+def gen_bin_tree(N):
+    nodes = range(1,N+1)
+    d = random_bintree(nodes)
+    G = nx.Graph()
+    dict_tree_to_graph(d, G)
+    return G
+
+
 
 def test_gen(N):
-    G = gen_tree(N)
+    G = gen_bin_tree(N)
+    print "try!!"
+    print G.nodes()
     pos = hierarchy_pos(G, 1)
     nx.draw(G, pos=pos)
     plt.draw()
@@ -102,3 +144,5 @@ def test_gen(N):
 
 
 
+if __name__ == "__main__":
+    test_gen(5)
