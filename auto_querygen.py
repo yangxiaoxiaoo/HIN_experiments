@@ -367,7 +367,8 @@ class new_tree:
             if tree_inG.degree(node) == 2:
                 root = node
                 break
-        assert root != 0
+
+       # assert root != 0
         nodes =list(nx.dfs_postorder_nodes(tree_inG, root))
         print nodes
 
@@ -472,13 +473,19 @@ class new_tree:
 
         vertex_appearance_tracker = dict()
         outputcount = 1
+
+       # counter = 0
         for mapping in GM.subgraph_isomorphisms_iter():
 
             for vertex, node in mapping.iteritems():
+
+
+
                 if (node, vertex) not in vertex_appearance_tracker:
                     vertex_appearance_tracker[(node, vertex)] = 1
                 else:
                     vertex_appearance_tracker[(node, vertex)] += 1
+
 
             if self.is_all_terminals_repeated(mapping, threshold, tree, vertex_appearance_tracker):
                 print mapping
@@ -493,23 +500,25 @@ class new_tree:
 
 
         tree = tree_gen.gen_tree(N)
+        #tree = tree_gen.gen_bin_tree(N)
         print tree.edges()
 
       #  g, v2type = load_graph_struct("./Enron/enron_graph.wgt.norm")
-       # self.new_tree_match(g, v2type, tree, threshold=3, outfile_prefix="./Enron/new_queries/N"+str(N)+'/', repeat=2000)
+      #  self.new_tree_match(g, v2type, tree, threshold=3, outfile_prefix="./Enron/new_queries/N"+str(N)+'/', repeat=20)
 
-       # g, v2type = load_graph_struct("./DBLP/dblp_graph.new.wgt")
-       # self.new_tree_match(g, v2type, tree, threshold=4, outfile_prefix="./DBLP/new_queries/N"+str(N)+'/', repeat=2000)
+        g, v2type = load_graph_struct("./DBLP/dblp_graph.new.wgt")
+        self.new_tree_match(g, v2type, tree, threshold=4, outfile_prefix="./DBLP/new_queries/N"+str(N)+'/', repeat=20)
 
       #  g, v2type = load_graph_struct("./PhotoNet/graph_prank.graph_new.graph")
        # self.new_tree_match(g, v2type, tree, threshold=4, outfile_prefix="./PhotoNet/new_queries/N"+str(N)+'/', repeat=2000)
-
+     #   g, v2type = load_graph_struct("./YelpPhoto/yelp_review_tip_photos.graph_new.graph")
+     #   self.new_tree_match(g, v2type, tree, threshold=3, outfile_prefix="./YelpPhoto/new_queries/N"+str(N)+'/', repeat=2000)
 
 
 
 if __name__ == '__main__':
     new_tree_test = new_tree()
 
-    new_tree_test.test_new_tree(5)
+    new_tree_test.test_new_tree(14)
 
 #    main()

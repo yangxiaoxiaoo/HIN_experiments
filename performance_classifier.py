@@ -222,10 +222,10 @@ class Performance_Mining():
 
 
 def main():
-    pm = Performance_Mining('Enron')
-    for N in [5, 6, 7, 8, 9, 10]:
-    #pm = Performance_Mining('DBLP')
-    #for N in [5, 6, 7, 8]:
+  #  pm = Performance_Mining('Enron')
+  #  for N in [5, 6, 7, 8, 9, 10]:
+    pm = Performance_Mining('DBLP')
+    for N in [5, 6, 7, 8]:
         pm.build_feature_from_queries(N)
    # pm.Dataset = 'Enron'
    # for N in [5, 6, 7, 8]:
