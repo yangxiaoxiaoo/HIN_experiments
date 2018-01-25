@@ -54,6 +54,7 @@ QueryResult bidir_Dijkstra(const graph_t& g, PrunedLandmarkLabeling<> &pll, Quer
 */
 QueryResult AStar_Prophet(const graph_t& g, Query query, double& timeUsed);
 QueryResultTrees AStar_Prophet_Tree(const graph_t& g, Query_tree query, double& timeUsed);
+QueryResultTrees AStar_Prophet_Tree_v2(const graph_t& g, Query_tree query, double& timeUsed);
 Instance_Tree Instance_Tree_Insert(Instance_Tree subtree, int curId, int neigh, float edgewgt, bool on_left);
 QueryResult Bidirec_AStar_Prophet(const graph_t& g, Query query);
 QueryResult AStar_Prophet_Explicit(const graph_t& g, Query query);
@@ -63,6 +64,10 @@ float getHeuristicValue(const graph_t& g, Query query, int depth, int curNode);
 float getHeuristicValueTree(const graph_t& g, Query_tree query_tree, int depth, int curNode);
 int Expand_current(const graph_t& g, Query_tree querytree, std::vector <int> pre_order_patterns, int curId,
                     PQEntity_AStar_Tree curNode,Instance_Tree subtree, int& total,std::unordered_map<int, std::unordered_map<int, float>> node2layers,
+                    int curId_inpattern, std::priority_queue<PQEntity_AStar_Tree, std::vector<PQEntity_AStar_Tree>, comparator_AStar_Tree>& frontier, int& numTrees);
+
+int Expand_current_v2(const graph_t& g, Query_tree querytree, std::vector <int> pre_order_patterns, int curId,
+                    PQEntity_AStar_Tree curNode,Instance_Tree subtree, int& total,std::unordered_map<int, std::unordered_map<int, std::tuple<float, float>>> node2layers,
                     int curId_inpattern, std::priority_queue<PQEntity_AStar_Tree, std::vector<PQEntity_AStar_Tree>, comparator_AStar_Tree>& frontier, int& numTrees);
 
 int Expand_current_exhaust(const graph_t& g, Query_tree querytree, std::vector <int> pre_order_patterns, int curId,

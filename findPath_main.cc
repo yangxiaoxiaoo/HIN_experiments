@@ -8,7 +8,7 @@ using namespace std;
 //query is specified in test main().
 
 
-/*
+
 int main (int argc, char **argv){
 //temp main Oct 17 experiments
 
@@ -84,7 +84,7 @@ int main (int argc, char **argv){
     return 0;
 }
 
-*/
+
 
 
 // here is the old main before rewrite for Oct 17 quick experiment. Will recover once I am done.
@@ -459,7 +459,7 @@ int trans_seed = 0;
 */
 
 //here is the path main
-
+/*
 int main (int argc, char **argv) {
 
 	char *in_fname = argv[1];
@@ -614,10 +614,11 @@ int main (int argc, char **argv) {
 		else if(timeDiff*1000 > 3600*48)
 			queryNum = 100;*/
 
+/*
 	}//end of reading query file.
 	ofs0.close();
 
 	return 0;
 }
 
-
+*/

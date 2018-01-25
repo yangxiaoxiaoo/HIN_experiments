@@ -37,6 +37,8 @@ def write_query(queryfile):
 
 
 if __name__ == "__main__":
+    # write_query("SynData/query")
+
     infile = "SynData/Graph"
     n = 100
     write_to_file(n, infile)
