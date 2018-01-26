@@ -1366,18 +1366,14 @@ vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree){ //only decompose 
 
 }
 
-/*****dont do this for now.        //now it's time to insert the edge type into this decomposed query's pattern!
+unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_compute(const graph_t& g, Query_tree querytree){
+    unordered_map<int, unordered_map<int, tuple<float,float>>> hrtcs;
+    //TODO: algorithm 1. return (node -> {vertex1-><left1, right1>; vertex2 -> <left2, right2>; ...}).
 
-        vector <int> edge_included;
-        edge_included.push_back(nodes_pattern[0]);
-        for(int i=1; i<nodes_pattern.size(); i++){
-            Edge e = make_pair(nodes_pattern[i-1], nodes_pattern[i]);
-            edge_included.push_back(QTree.Edges_types.find(e)-> second);
-            edge_included.push_back(nodes_pattern[i]);
-        }
-        generalized_query.pattern = edge_included;
-*/
 
+
+    return hrtcs;
+}
 
 
 

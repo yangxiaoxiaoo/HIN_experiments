@@ -22,6 +22,7 @@ Path createPath(float wgt, std::vector<int> path);
 std::vector<Path> pq2vec(std::priority_queue<Path, std::vector<Path>, comparator2> candidates);
 std::vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree);
 std::unordered_map<int, std::unordered_set<int>> Retrieve_children(Query_tree QTree);
+std::unordered_map<int, std::unordered_map<int, std::tuple<float,float>>> bottom_up_hrtc_compute(const graph_t& g, Query_tree querytree);
 
 /*
 	io.cc
