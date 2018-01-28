@@ -1367,8 +1367,77 @@ vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree){ //only decompose 
 }
 
 unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_compute(const graph_t& g, Query_tree querytree){
-    unordered_map<int, unordered_map<int, tuple<float,float>>> hrtcs;
-    //TODO: algorithm 1. return (node -> {vertex1-><left1, right1>; vertex2 -> <left2, right2>; ...}).
+
+    unordered_map<int, unordered_map<int, tuple<float,float>>> hrtcs;  //TODO: include the full CandIdx here, which include a max of all
+    //algorithm 1. return (node -> {vertex1-><hrtc_left1, hrtic_right1, v_left1, v_right1>; vertex2 -> <left2, right2, v_left2, v_right2>; ...}).
+    cout <<"computing heuristic value bottom-up..."<<endl;
+    int last_terminal = querytree.terminals_index.back();
+    for (int i= 0; i< querytree.nodes_ordered.size(); i++){
+        int node = querytree.nodes_ordered[i];
+        unordered_map<int, tuple<float,float>> candidates;
+        if (i<= last_terminal){
+            //terminal nodes come first in a postorder traversal
+            tuple<float, float> terminal_hrtc (0.0, 0.0);
+            candidates = {{querytree.nodes_ordered[i], terminal_hrtc}};
+            hrtcs[node] = candidates;
+        }
+        else{
+            //non-terminal node, will have at least one child
+            tuple<float, float> cur_hrtc (0.0, 0.0);
+            if (querytree.map2leftcdr.find(node)!= querytree.map2leftcdr.end()){
+                //node has a left child
+                int leftchild = querytree.map2leftcdr[node];
+                int best_left_candidate = 0;
+                // float best_left_value = MAX_WEIGHT;
+                for(auto it = hrtcs[leftchild].begin(); it != hrtcs[leftchild].end(); ++it){
+                    int left_candidate = it -> first;
+                    float left_subtree_wgt = get<0>(it->second) + get<1>(it->second);
+
+                    for(int j = 0; j < g.degree[left_candidate]; j++){
+                        int node_candidate = g.neighbors[g.nodes[left_candidate]+j];
+                        float best_left_value = MAX_WEIGHT;
+                        float edge_wgt = calcWgt(g.wgts[g.nodes[left_candidate]+j], querytree.time);
+                        if ((edge_wgt + left_subtree_wgt) < best_left_value){
+                            best_left_value = (edge_wgt + left_subtree_wgt);
+                        //    best_left_candidate = left_candidate;
+                            // get<0>(cur_hrtc) = best_left_value;
+                            get<0>(hrtcs[node][node_candidate]) = best_left_value;
+
+                        }
+                    }
+                }
+            //    cout<< "found best left candidate!" << best_left_candidate << "!= 0 should be"<<endl;
+
+
+             //TODO:   get<3, 4>cur_hrtc =
+            }
+            if(querytree.map2rightcdr.find(node)!= querytree.map2rightcdr.end()) {
+                //node has a right child
+                int rightchild = querytree.map2rightcdr[node];
+                int best_right_candidate = 0;
+                // float best_right_value = MAX_WEIGHT;
+                for(auto it = hrtcs[rightchild].begin(); it != hrtcs[rightchild].end(); ++it){
+                    int right_candidate = it -> first;
+                    float right_subtree_wgt = get<0>(it->second) + get<1>(it->second);
+
+                    for(int j = 0; j < g.degree[right_candidate]; j++){
+                        int node_candidate = g.neighbors[g.nodes[right_candidate]+j];
+                        //bottom up: node_candidate is the vertex that will be node's candidate
+                        float best_right_value = MAX_WEIGHT;
+                        float edge_wgt = calcWgt(g.wgts[g.nodes[right_candidate]+j], querytree.time);
+                        if ((edge_wgt + right_subtree_wgt) < best_right_value){
+                            best_right_value = (edge_wgt + right_subtree_wgt);
+                          //  best_right_candidate = right_candidate;
+                            // get<1>(cur_hrtc) = best_right_value;
+                            get<1>(hrtcs[node][node_candidate]) = best_right_value; //use the minimum possible
+
+                        }
+                    }
+                }
+            //    cout<< "found best right candidate!" << best_right_candidate << "!= 0 should be"<<endl;
+            }
+        }
+    }
 
 
 

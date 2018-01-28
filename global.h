@@ -84,6 +84,7 @@ typedef struct Non_bi_tree{
 	float time;
 }Non_bi_tree;
 
+
 typedef struct Query_tree{
 
 	//given a tree query input. At this point, we assume all queries are trees
@@ -113,6 +114,13 @@ typedef struct Query_tree{
 	//	assert(patterns.size() == junction_index.size());
 
 }Query_tree;
+
+
+class Tree_query{
+    public: Query_tree querytree;
+
+};
+
 
 
 typedef struct Query_tree_fixed{

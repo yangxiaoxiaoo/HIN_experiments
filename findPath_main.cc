@@ -8,7 +8,7 @@ using namespace std;
 //query is specified in test main().
 
 
-
+/*
 int main (int argc, char **argv){
 //temp main Oct 17 experiments
 
@@ -83,12 +83,12 @@ int main (int argc, char **argv){
 
     return 0;
 }
-
+*/
 
 
 
 // here is the old main before rewrite for Oct 17 quick experiment. Will recover once I am done.
-/*
+
 int main (int argc, char **argv){
 
     char *in_fname = argv[1];
@@ -111,7 +111,8 @@ int main (int argc, char **argv){
 
 	gettimeofday(&time1, NULL);
 	//query the pattern
-    QueryResultTrees qResult = AStar_Prophet_Tree(G,testQTree,pTime2); //pTime2 is only useful if the weight depends on recency.
+    QueryResultTrees qResult = AStar_Prophet_Tree_v2(G,testQTree,pTime2); //pTime2 is only useful if the weight depends on recency.
+	//TODO: assert this is the same as v1
 
     gettimeofday(&time2, NULL);
 	//int numtree = qResult.numTrees; //the search space: number of trees generated
@@ -193,6 +194,8 @@ int main (int argc, char **argv){
 		ofs0 << endl;
 	ofs0.flush();
 	/////////////baseline 1
+
+
 	print2FileTree(qResult1, timeDiff1, ofs0) ;
 
 	if(pTime1 != 0)
@@ -219,7 +222,7 @@ int main (int argc, char **argv){
 
     return 0;
 }
-*/
+
 
 
 //select query number from a template
