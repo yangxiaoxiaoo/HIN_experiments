@@ -134,6 +134,7 @@ int main (int argc, char **argv){
 
   /////////////COMPARISON////////////////
 
+  /*
 	gettimeofday(&time1, NULL);
 
     QueryResultTrees qResult1 = Bruteforce_modified(G,testQTree,pTime2);
@@ -178,7 +179,7 @@ int main (int argc, char **argv){
 		}
 	cout << "#################################################"<< endl;
 
-
+*/
 
 
 
@@ -195,7 +196,7 @@ int main (int argc, char **argv){
 	ofs0.flush();
 	/////////////baseline 1
 
-
+/*
 	print2FileTree(qResult1, timeDiff1, ofs0) ;
 
 	if(pTime1 != 0)
@@ -216,6 +217,7 @@ int main (int argc, char **argv){
 		ofs0 << endl;
 	ofs0.flush();
 
+*/
 
 	ofs0.close();
 

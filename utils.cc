@@ -1383,7 +1383,6 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
         }
         else{
             //non-terminal node, will have at least one child
-            tuple<float, float> cur_hrtc (0.0, 0.0);
             if (querytree.map2leftcdr.find(node)!= querytree.map2leftcdr.end()){
                 //node has a left child
                 int leftchild = querytree.map2leftcdr[node];
@@ -1395,14 +1394,17 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
 
                     for(int j = 0; j < g.degree[left_candidate]; j++){
                         int node_candidate = g.neighbors[g.nodes[left_candidate]+j];
-                        float best_left_value = MAX_WEIGHT;
-                        float edge_wgt = calcWgt(g.wgts[g.nodes[left_candidate]+j], querytree.time);
-                        if ((edge_wgt + left_subtree_wgt) < best_left_value){
-                            best_left_value = (edge_wgt + left_subtree_wgt);
-                        //    best_left_candidate = left_candidate;
-                            // get<0>(cur_hrtc) = best_left_value;
-                            get<0>(hrtcs[node][node_candidate]) = best_left_value;
+                        if (g.typeMap[node_candidate] == querytree.map2patthern[node]){
+                            float best_left_value = MAX_WEIGHT;
+                            float edge_wgt = calcWgt(g.wgts[g.nodes[left_candidate]+j], querytree.time);
+                            if ((edge_wgt + left_subtree_wgt) < best_left_value){
+                                best_left_value = (edge_wgt + left_subtree_wgt);
+                            //    best_left_candidate = left_candidate;
+                                // get<0>(cur_hrtc) = best_left_value;
+                                get<0>(hrtcs[node][node_candidate]) = best_left_value;
+                                get<1>(hrtcs[node][node_candidate]) = MAX_WEIGHT;
 
+                            }
                         }
                     }
                 }
@@ -1422,15 +1424,24 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
 
                     for(int j = 0; j < g.degree[right_candidate]; j++){
                         int node_candidate = g.neighbors[g.nodes[right_candidate]+j];
-                        //bottom up: node_candidate is the vertex that will be node's candidate
-                        float best_right_value = MAX_WEIGHT;
-                        float edge_wgt = calcWgt(g.wgts[g.nodes[right_candidate]+j], querytree.time);
-                        if ((edge_wgt + right_subtree_wgt) < best_right_value){
-                            best_right_value = (edge_wgt + right_subtree_wgt);
-                          //  best_right_candidate = right_candidate;
-                            // get<1>(cur_hrtc) = best_right_value;
-                            get<1>(hrtcs[node][node_candidate]) = best_right_value; //use the minimum possible
+                        if (g.typeMap[node_candidate] == querytree.map2patthern[node]){
+                            float best_right_value = MAX_WEIGHT;
+                            float edge_wgt = calcWgt(g.wgts[g.nodes[right_candidate]+j], querytree.time);
+                            if ((edge_wgt + right_subtree_wgt) < best_right_value){
+                                best_right_value = (edge_wgt + right_subtree_wgt);
+                              //  best_right_candidate = right_candidate;
+                                // get<1>(cur_hrtc) = best_right_value;
+                                if (hrtcs[node].find(node_candidate) != hrtcs[node].end()){
+                                    //this node is already in there!
+                                    get<1>(hrtcs[node][node_candidate]) = best_right_value;
 
+                                }
+                                else{
+                                    //fist time seeing the node, initializing left value to infinity
+                                    get<0>(hrtcs[node][node_candidate]) = MAX_WEIGHT;
+                                    get<1>(hrtcs[node][node_candidate]) = best_right_value;
+                                }
+                            }
                         }
                     }
                 }
