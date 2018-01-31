@@ -1371,11 +1371,11 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
     unordered_map<int, unordered_map<int, tuple<float,float>>> hrtcs;  //TODO: include the full CandIdx here, which include a max of all
     //algorithm 1. return (node -> {vertex1-><hrtc_left1, hrtic_right1, v_left1, v_right1>; vertex2 -> <left2, right2, v_left2, v_right2>; ...}).
     cout <<"computing heuristic value bottom-up..."<<endl;
-    int last_terminal = querytree.terminals_index.back();
+
     for (int i= 0; i< querytree.nodes_ordered.size(); i++){
         int node = querytree.nodes_ordered[i];
         unordered_map<int, tuple<float,float>> candidates;
-        if (i<= last_terminal){
+        if (find(querytree.terminals_index.begin(), querytree.terminals_index.end(), i)!= querytree.terminals_index.end()){
             //terminal nodes come first in a postorder traversal
             tuple<float, float> terminal_hrtc (0.0, 0.0);
             candidates = {{querytree.nodes_ordered[i], terminal_hrtc}};
