@@ -1383,11 +1383,12 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
         }
         else{
             //non-terminal node, will have at least one child
-            if (querytree.map2leftcdr.find(node)!= querytree.map2leftcdr.end()){
-                //node has a left child
+            if (querytree.map2leftcdr.find(node)!= querytree.map2leftcdr.end() && querytree.map2rightcdr.find(node)!= querytree.map2rightcdr.end()){
+                //node has both left child and right child
                 int leftchild = querytree.map2leftcdr[node];
                 int best_left_candidate = 0;
-                // float best_left_value = MAX_WEIGHT;
+                unordered_set<int> left_connected_cands;
+                unordered_set<int> right_connected_cands;
                 for(auto it = hrtcs[leftchild].begin(); it != hrtcs[leftchild].end(); ++it){
                     int left_candidate = it -> first;
                     float left_subtree_wgt = get<0>(it->second) + get<1>(it->second);
@@ -1395,29 +1396,18 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                     for(int j = 0; j < g.degree[left_candidate]; j++){
                         int node_candidate = g.neighbors[g.nodes[left_candidate]+j];
                         if (g.typeMap[node_candidate] == querytree.map2patthern[node]){
+                            left_connected_cands = left_connected_cands.insert(node_candidate);
                             float best_left_value = MAX_WEIGHT;
                             float edge_wgt = calcWgt(g.wgts[g.nodes[left_candidate]+j], querytree.time);
                             if ((edge_wgt + left_subtree_wgt) < best_left_value){
                                 best_left_value = (edge_wgt + left_subtree_wgt);
-                            //    best_left_candidate = left_candidate;
-                                // get<0>(cur_hrtc) = best_left_value;
                                 get<0>(hrtcs[node][node_candidate]) = best_left_value;
-                                get<1>(hrtcs[node][node_candidate]) = MAX_WEIGHT;
-
                             }
                         }
                     }
                 }
-            //    cout<< "found best left candidate!" << best_left_candidate << "!= 0 should be"<<endl;
-
-
-             //TODO:   get<3, 4>cur_hrtc =
-            }
-            if(querytree.map2rightcdr.find(node)!= querytree.map2rightcdr.end()) {
-                //node has a right child
                 int rightchild = querytree.map2rightcdr[node];
                 int best_right_candidate = 0;
-                // float best_right_value = MAX_WEIGHT;
                 for(auto it = hrtcs[rightchild].begin(); it != hrtcs[rightchild].end(); ++it){
                     int right_candidate = it -> first;
                     float right_subtree_wgt = get<0>(it->second) + get<1>(it->second);
@@ -1425,27 +1415,78 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                     for(int j = 0; j < g.degree[right_candidate]; j++){
                         int node_candidate = g.neighbors[g.nodes[right_candidate]+j];
                         if (g.typeMap[node_candidate] == querytree.map2patthern[node]){
+                            right_candidate_cands = right_candidate_cands.insert(node_candidate);
                             float best_right_value = MAX_WEIGHT;
                             float edge_wgt = calcWgt(g.wgts[g.nodes[right_candidate]+j], querytree.time);
                             if ((edge_wgt + right_subtree_wgt) < best_right_value){
                                 best_right_value = (edge_wgt + right_subtree_wgt);
-                              //  best_right_candidate = right_candidate;
-                                // get<1>(cur_hrtc) = best_right_value;
-                                if (hrtcs[node].find(node_candidate) != hrtcs[node].end()){
-                                    //this node is already in there!
-                                    get<1>(hrtcs[node][node_candidate]) = best_right_value;
+                                get<1>(hrtcs[node][node_candidate]) = best_right_value;
+                            }
+                        }
+                    }
+                }
+                //join on each node candidate..only keep those that are connected to both sides.
+                for(auto it = hrtcs[node].begin(); it != hrtcs[node].end();){
+                    int node_candidate = it-> first;
+                    if ( left_connected_cands.find(node_candidate) == left_connected_cands.end()
+                        || right_connected_cands.find(node_candidate) == right_connected_cands.end()){
+                            it = hrtcs[node].erase(it);
+                    }
+                    else{
+                         it ++;
+                    }
+                }
+            }
+            else{
+                //node has only one child, set the other field to 0.
+                if(querytree.map2rightcdr.find(node)!= querytree.map2rightcdr.end()) {
+                    //node has a right child
+                    int rightchild = querytree.map2rightcdr[node];
+                    int best_right_candidate = 0;
+                    // float best_right_value = MAX_WEIGHT;
+                    for(auto it = hrtcs[rightchild].begin(); it != hrtcs[rightchild].end(); ++it){
+                        int right_candidate = it -> first;
+                        float right_subtree_wgt = get<0>(it->second) + get<1>(it->second);
 
-                                }
-                                else{
-                                    //fist time seeing the node, initializing left value to infinity
-                                    get<0>(hrtcs[node][node_candidate]) = MAX_WEIGHT;
+                        for(int j = 0; j < g.degree[right_candidate]; j++){
+                            int node_candidate = g.neighbors[g.nodes[right_candidate]+j];
+                            if (g.typeMap[node_candidate] == querytree.map2patthern[node]){
+                                float best_right_value = MAX_WEIGHT;
+                                float edge_wgt = calcWgt(g.wgts[g.nodes[right_candidate]+j], querytree.time);
+                                if ((edge_wgt + right_subtree_wgt) < best_right_value){
+                                    best_right_value = (edge_wgt + right_subtree_wgt);
+
+                                    get<0>(hrtcs[node][node_candidate]) = 0;
                                     get<1>(hrtcs[node][node_candidate]) = best_right_value;
                                 }
                             }
                         }
                     }
                 }
-            //    cout<< "found best right candidate!" << best_right_candidate << "!= 0 should be"<<endl;
+                else{
+                    //node has a left child
+                    int leftchild = querytree.map2leftcdr[node];
+                    int best_left_candidate = 0;
+                    // float best_left_value = MAX_WEIGHT;
+                    for(auto it = hrtcs[leftchild].begin(); it != hrtcs[leftchild].end(); ++it){
+                        int left_candidate = it -> first;
+                        float left_subtree_wgt = get<0>(it->second) + get<1>(it->second);
+
+                        for(int j = 0; j < g.degree[left_candidate]; j++){
+                            int node_candidate = g.neighbors[g.nodes[left_candidate]+j];
+                            if (g.typeMap[node_candidate] == querytree.map2patthern[node]){
+                                float best_left_value = MAX_WEIGHT;
+                                float edge_wgt = calcWgt(g.wgts[g.nodes[left_candidate]+j], querytree.time);
+                                if ((edge_wgt + left_subtree_wgt) < best_left_value){
+                                    best_left_value = (edge_wgt + left_subtree_wgt);
+
+                                    get<0>(hrtcs[node][node_candidate]) = best_left_value;
+                                    get<1>(hrtcs[node][node_candidate]) = 0;
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
