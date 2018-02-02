@@ -269,13 +269,15 @@ int Expand_current(const graph_t& g, Query_tree querytree, vector <int> pre_orde
 }
 
 
-//WWW version of expand current PET. will change later, placeholder here...
-int Expand_current_v2(const graph_t& g, Query_tree querytree, vector <int> pre_order_patterns, int curId, PQEntity_AStar_Tree curNode,
+//WWW version of expand current PET. return true if it is front element, else not.
+//Execute the expansion and insert non-front element to priority queue.
+bool Expand_current_v2(const graph_t& g, Query_tree querytree, vector <int> pre_order_patterns, int& curId, PQEntity_AStar_Tree curNode,
                Instance_Tree subtree, int& total,unordered_map<int, unordered_map<int, tuple<float, float>>> node2layers, int curId_inpattern,
                std::priority_queue<PQEntity_AStar_Tree, std::vector<PQEntity_AStar_Tree>, comparator_AStar_Tree>& frontier, int& numTrees){
                    //each expanding operation may change: total, frontier, curId, curNode.  other variables wont change.
         bool on_left = true;
-
+        float old_key = curNode.key; //use this to compare with the new key later to decide it front-optimization.
+        bool front_found = false;
 
 		if (find(querytree.junctions.begin(),querytree.junctions.end(), curId_inpattern) == querytree.junctions.end()){
             //curId is not a junction, find the only child
@@ -304,10 +306,19 @@ int Expand_current_v2(const graph_t& g, Query_tree querytree, vector <int> pre_o
                         if(find(subtree.nodes.begin(), subtree.nodes.end(), neigh) == subtree.nodes.end() &&edgwgt+curNode.wgt<MAX_WEIGHT ){//three cond: found neigh in this layer; neigh not already in subtree;
                             //append this neigh to the subtree at the right place
                             Instance_Tree new_subtree = Instance_Tree_Insert(subtree, old_parent, neigh, edgwgt, on_left);
-                            float wgtnew = edgwgt + curNode.wgt;
+                            float traversed_wgt = edgwgt + curNode.wgt;
+                            float key = edgwgt+curNode.wgt + std::get<0>(found->second) + std::get<1>(found->second);
+                            if (!front_found && (key == old_key)){ //this is a front element! the first fond wont be inserted into PQ.
+                                front_found = true;
+                                curNode= createPQEntity_AStar_Tree
+                                                  (neigh, next_id_pattern, traversed_wgt, key, new_subtree, curNode.vertex2node);
+                            }
+                            else{ //not a front element
+                                frontier.push(createPQEntity_AStar_Tree
+                                                  (neigh, next_id_pattern, traversed_wgt, key, new_subtree, curNode.vertex2node));
+                                total ++;
+                            }
 
-                            frontier.push(createPQEntity_AStar_Tree(neigh, next_id_pattern, edgwgt+curNode.wgt, edgwgt+curNode.wgt + std::get<0>(found->second) + std::get<1>(found->second), new_subtree, curNode.vertex2node));
-                            numTrees ++;
 
                         }
                     }
@@ -338,10 +349,18 @@ int Expand_current_v2(const graph_t& g, Query_tree querytree, vector <int> pre_o
                     if( found != node2layers[onlychild].end() && find(subtree.nodes.begin(), subtree.nodes.end(), neigh) == subtree.nodes.end() && edgwgt+curNode.wgt<MAX_WEIGHT  && (find(querytree.terminals.begin(), querytree.terminals.end(), neigh) == querytree.terminals.end()  ||(find(querytree.terminals.begin(), querytree.terminals.end(), onlychild) != querytree.terminals.end()) ) ){
                         //append this neigh to the subtree at the right place
                         Instance_Tree new_subtree = Instance_Tree_Insert(subtree, curId, neigh, edgwgt, on_left);
-
-
-                        frontier.push(createPQEntity_AStar_Tree(neigh, onlychild, edgwgt+curNode.wgt, edgwgt+curNode.wgt + std::get<0>(found->second) + std::get<1>(found->second), new_subtree, curNode.vertex2node));
-                        total += 1;
+                        float traversed_wgt = edgwgt+curNode.wgt;
+                        float key = edgwgt+curNode.wgt + std::get<0>(found->second) + std::get<1>(found->second);
+                        if (!front_found && (key == old_key)){ //this is a front element! the first fond wont be inserted into PQ.
+                                front_found = true;
+                                curNode = (createPQEntity_AStar_Tree
+                                              (neigh, onlychild, traversed_wgt,key , new_subtree, curNode.vertex2node));
+                            }
+                            else{ //not a front element
+                                frontier.push(createPQEntity_AStar_Tree
+                                              (neigh, onlychild, traversed_wgt,key , new_subtree, curNode.vertex2node));
+                                total += 1;
+                            }
                     }
                 }
             }
@@ -377,15 +396,24 @@ int Expand_current_v2(const graph_t& g, Query_tree querytree, vector <int> pre_o
                                     }
                                 }
                             }
-
-                            frontier.push(createPQEntity_AStar_Tree(neighleft, leftchild, edgwgt_left+curNode.wgt, edgwgt_left+curNode.wgt + get<0>(foundleft->second)+update_rightvalue, new_subtree, curNode.vertex2node));
-                            total += 1;
+                            float traversed_wgt = edgwgt_left+curNode.wgt;
+                            float key = edgwgt_left+curNode.wgt + get<0>(foundleft->second)+update_rightvalue;
+                            if (!front_found && (key == old_key)){ //this is a front element! the first fond wont be inserted into PQ.
+                                front_found = true;
+                                curNode = (createPQEntity_AStar_Tree
+                                              (neighleft, leftchild, traversed_wgt, key, new_subtree, curNode.vertex2node));
+                            }
+                            else{ //not a front element
+                                frontier.push(createPQEntity_AStar_Tree
+                                              (neighleft, leftchild, traversed_wgt, key, new_subtree, curNode.vertex2node));
+                                total += 1;
+                            }
                         }
                     }
                 }
             }
 
-    return curId;
+    return front_found;
 
 }
 
@@ -1878,11 +1906,18 @@ QueryResultTrees AStar_Prophet_Tree_v2(const graph_t& g, Query_tree querytree, d
 
 
     //Top-down traversal in pre-order
+    bool front_element = false;
+
 	while(!frontier.empty()){//each time check one element in the PQ.
 		mem = max(mem, (int)frontier.size());
-		PQEntity_AStar_Tree curNode;
-		curNode = frontier.top();
-		frontier.pop();
+        cout<<"curNode key"<<curNode.key <<endl;
+        cout<<"size"<<curNode.subtree.nodes.size() << endl;
+        cout<<"is front?"<<front_element<<endl;
+		if (!front_element){
+            curNode = frontier.top();
+            frontier.pop();
+		}
+		//elsewise, front element is curNode, no need to further retrieve.
 
 		int curId = curNode.nodeIdx;
 		int curId_inpattern = curNode.curId_inpattern;
@@ -1891,13 +1926,6 @@ QueryResultTrees AStar_Prophet_Tree_v2(const graph_t& g, Query_tree querytree, d
 
 		int done_countes = curNode.subtree.nodes.size()-1;//start from 0.  done_counts: refer to the old path depth
 		Instance_Tree subtree = curNode.subtree;
-        if (curId == 4){
-            cout<<"pop out frontier curId is"<<curId<<endl;
-            cout<<done_countes<< "his inpattern node is"<<curId_inpattern<<endl;
-
-
-
-		}
 
 		if(done_countes==iterationnum){//reach the end of pattern.
 			if(curNode.wgt<MAX_WEIGHT){ //(%all terminal nodes are reached)--actually redundent.
@@ -1914,7 +1942,7 @@ QueryResultTrees AStar_Prophet_Tree_v2(const graph_t& g, Query_tree querytree, d
 		//It also updates the value of the right path when entering the junction for the first time. This update involves finding the best heuristic estimate, given that the junction vertex is fixed
 
 
-        curId = Expand_current_v2(g, querytree, pre_order_patterns, curId, curNode, subtree,total,node2vertices_hrtc, curId_inpattern,frontier, numTrees);
+        front_element = Expand_current_v2(g, querytree, pre_order_patterns, curId, curNode, subtree,total,node2vertices_hrtc, curId_inpattern,frontier, numTrees);
         //each expanding operation may change: total, frontier, curId, curNode.
 		}
 

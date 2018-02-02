@@ -68,7 +68,7 @@ int Expand_current(const graph_t& g, Query_tree querytree, std::vector <int> pre
                     PQEntity_AStar_Tree curNode,Instance_Tree subtree, int& total,std::unordered_map<int, std::unordered_map<int, float>> node2layers,
                     int curId_inpattern, std::priority_queue<PQEntity_AStar_Tree, std::vector<PQEntity_AStar_Tree>, comparator_AStar_Tree>& frontier, int& numTrees);
 
-int Expand_current_v2(const graph_t& g, Query_tree querytree, std::vector <int> pre_order_patterns, int curId,
+bool Expand_current_v2(const graph_t& g, Query_tree querytree, std::vector <int> pre_order_patterns, int& curId,
                     PQEntity_AStar_Tree curNode,Instance_Tree subtree, int& total,std::unordered_map<int, std::unordered_map<int, std::tuple<float, float>>> node2layers,
                     int curId_inpattern, std::priority_queue<PQEntity_AStar_Tree, std::vector<PQEntity_AStar_Tree>, comparator_AStar_Tree>& frontier, int& numTrees);
 
