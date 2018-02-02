@@ -1366,10 +1366,12 @@ vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree){ //only decompose 
 
 }
 
-unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_compute(const graph_t& g, Query_tree querytree){
+unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_compute
+(const graph_t& g, Query_tree querytree, unordered_map<int,  unordered_map<int, vector<int>>> & candidxleft, unordered_map<int,  unordered_map<int, vector<int>>> & candidxright){
 
-    unordered_map<int, unordered_map<int, tuple<float,float>>> hrtcs;  //TODO: include the full CandIdx here, which include a max of all
-    //algorithm 1. return (node -> {vertex1-><hrtc_left1, hrtic_right1, v_left1, v_right1>; vertex2 -> <left2, right2, v_left2, v_right2>; ...}).
+    //algorithm 1. return (node -> {vertex1-><hrtc_left1, hrtc_right1>; vertex2 -> <left2, right2>; ...}).
+    //Also build a candidx mapping from a candidate vertex to its expending neighbors. <node, candidate> -> all possible left child vertex
+    unordered_map<int, unordered_map<int, tuple<float,float>>> hrtcs;
     cout <<"computing heuristic value bottom-up..."<<endl;
 
     for (int i= 0; i< querytree.nodes_ordered.size(); i++){
@@ -1386,7 +1388,7 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
             if (querytree.map2leftcdr.find(node)!= querytree.map2leftcdr.end() && querytree.map2rightcdr.find(node)!= querytree.map2rightcdr.end()){
                 //node has both left child and right child
                 int leftchild = querytree.map2leftcdr[node];
-                int best_left_candidate = 0;
+
                 unordered_set<int> left_connected_cands;
                 unordered_set<int> right_connected_cands;
                 for(auto it = hrtcs[leftchild].begin(); it != hrtcs[leftchild].end(); ++it){
@@ -1396,7 +1398,8 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                     for(int j = 0; j < g.degree[left_candidate]; j++){
                         int node_candidate = g.neighbors[g.nodes[left_candidate]+j];
                         if (g.typeMap[node_candidate] == querytree.map2patthern[node]){
-                            left_connected_cands = left_connected_cands.insert(node_candidate);
+                            left_connected_cands.insert(node_candidate);
+                            candidxleft[node][node_candidate].push_back(left_candidate);
                             float best_left_value = MAX_WEIGHT;
                             float edge_wgt = calcWgt(g.wgts[g.nodes[left_candidate]+j], querytree.time);
                             if ((edge_wgt + left_subtree_wgt) < best_left_value){
@@ -1407,7 +1410,7 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                     }
                 }
                 int rightchild = querytree.map2rightcdr[node];
-                int best_right_candidate = 0;
+
                 for(auto it = hrtcs[rightchild].begin(); it != hrtcs[rightchild].end(); ++it){
                     int right_candidate = it -> first;
                     float right_subtree_wgt = get<0>(it->second) + get<1>(it->second);
@@ -1415,7 +1418,8 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                     for(int j = 0; j < g.degree[right_candidate]; j++){
                         int node_candidate = g.neighbors[g.nodes[right_candidate]+j];
                         if (g.typeMap[node_candidate] == querytree.map2patthern[node]){
-                            right_candidate_cands = right_candidate_cands.insert(node_candidate);
+                            right_connected_cands.insert(node_candidate);
+                            candidxright[node][node_candidate].push_back(right_candidate);
                             float best_right_value = MAX_WEIGHT;
                             float edge_wgt = calcWgt(g.wgts[g.nodes[right_candidate]+j], querytree.time);
                             if ((edge_wgt + right_subtree_wgt) < best_right_value){
@@ -1433,7 +1437,8 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                             it = hrtcs[node].erase(it);
                     }
                     else{
-                         it ++;
+
+                        it ++;
                     }
                 }
             }
@@ -1451,6 +1456,7 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                         for(int j = 0; j < g.degree[right_candidate]; j++){
                             int node_candidate = g.neighbors[g.nodes[right_candidate]+j];
                             if (g.typeMap[node_candidate] == querytree.map2patthern[node]){
+                                candidxright[node][node_candidate].push_back(right_candidate);
                                 float best_right_value = MAX_WEIGHT;
                                 float edge_wgt = calcWgt(g.wgts[g.nodes[right_candidate]+j], querytree.time);
                                 if ((edge_wgt + right_subtree_wgt) < best_right_value){
@@ -1475,6 +1481,7 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                         for(int j = 0; j < g.degree[left_candidate]; j++){
                             int node_candidate = g.neighbors[g.nodes[left_candidate]+j];
                             if (g.typeMap[node_candidate] == querytree.map2patthern[node]){
+                                    candidxleft[node][node_candidate].push_back(left_candidate);
                                 float best_left_value = MAX_WEIGHT;
                                 float edge_wgt = calcWgt(g.wgts[g.nodes[left_candidate]+j], querytree.time);
                                 if ((edge_wgt + left_subtree_wgt) < best_left_value){
