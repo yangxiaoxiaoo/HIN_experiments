@@ -200,7 +200,7 @@ struct comparator_AStar{
 //adaptation for binary trees
 typedef struct PQEntity_AStar_Tree{
         int nodeIdx;
-        std::unordered_map<int, int> vertex2node;
+        std::unordered_map<int, int> node2vertex;
         int curId_inpattern;
         float wgt;
 	float key;

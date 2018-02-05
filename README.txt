@@ -9,6 +9,8 @@ Example of running the code:
        But there are weights or attributes related to weight at the end of each line depending on the types of weights.
        Weights related to recency cannot be assigned before running therefore there are related attribute values stored at the end of each line.
 
+Alternatively, besides the public datasets, synthetic_data_gen.py is offering a tool to generate synthetic datasets with this format.
+
 2) queryfile: 9 lines each file for a binary tree query. For example:
 3 2 3 3 13809 6 193478
 1 2 6
@@ -31,3 +33,4 @@ line 8 denotes such junction nodes starting with count. Should be consistent wit
 line 9 denotes the type of each node in the post-order nodes list, stating with a count.
 
 3) The code will then perform KARPET, Baseline1, Baseline2 on the given query, and return top-k ansers with weight and query time in the output file.
+
