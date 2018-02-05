@@ -1367,7 +1367,7 @@ vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree){ //only decompose 
 }
 
 unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_compute
-(const graph_t& g, Query_tree querytree, unordered_map<int,  unordered_map<int, vector<int>>> & candidxleft, unordered_map<int,  unordered_map<int, vector<int>>> & candidxright){
+(const graph_t& g, Query_tree querytree, unordered_map<int,  unordered_map<int, unordered_map<int, float>>> & candidxleft, unordered_map<int,  unordered_map<int, unordered_map<int, float>>> & candidxright){
 
     //algorithm 1. return (node -> {vertex1-><hrtc_left1, hrtc_right1>; vertex2 -> <left2, right2>; ...}).
     //Also build a candidx mapping from a candidate vertex to its expending neighbors. <node, candidate> -> all possible left child vertex
@@ -1399,7 +1399,8 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                         int node_candidate = g.neighbors[g.nodes[left_candidate]+j];
                         if (g.typeMap[node_candidate] == querytree.map2patthern[node]){
                             left_connected_cands.insert(node_candidate);
-                            candidxleft[node][node_candidate].push_back(left_candidate);
+                            candidxleft[node][node_candidate][left_candidate]
+                                = calcWgt(g.wgts[g.nodes[left_candidate]+j], 0);
                             float best_left_value = MAX_WEIGHT;
                             float edge_wgt = calcWgt(g.wgts[g.nodes[left_candidate]+j], querytree.time);
                             if ((edge_wgt + left_subtree_wgt) < best_left_value){
@@ -1419,7 +1420,8 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                         int node_candidate = g.neighbors[g.nodes[right_candidate]+j];
                         if (g.typeMap[node_candidate] == querytree.map2patthern[node]){
                             right_connected_cands.insert(node_candidate);
-                            candidxright[node][node_candidate].push_back(right_candidate);
+                            candidxright[node][node_candidate][right_candidate]
+                                = calcWgt(g.wgts[g.nodes[right_candidate]+j], 0);
                             float best_right_value = MAX_WEIGHT;
                             float edge_wgt = calcWgt(g.wgts[g.nodes[right_candidate]+j], querytree.time);
                             if ((edge_wgt + right_subtree_wgt) < best_right_value){
@@ -1456,7 +1458,8 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                         for(int j = 0; j < g.degree[right_candidate]; j++){
                             int node_candidate = g.neighbors[g.nodes[right_candidate]+j];
                             if (g.typeMap[node_candidate] == querytree.map2patthern[node]){
-                                candidxright[node][node_candidate].push_back(right_candidate);
+                                candidxright[node][node_candidate][right_candidate]
+                                    =calcWgt(g.wgts[g.nodes[right_candidate]+j], 0);
                                 float best_right_value = MAX_WEIGHT;
                                 float edge_wgt = calcWgt(g.wgts[g.nodes[right_candidate]+j], querytree.time);
                                 if ((edge_wgt + right_subtree_wgt) < best_right_value){
@@ -1481,7 +1484,8 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                         for(int j = 0; j < g.degree[left_candidate]; j++){
                             int node_candidate = g.neighbors[g.nodes[left_candidate]+j];
                             if (g.typeMap[node_candidate] == querytree.map2patthern[node]){
-                                    candidxleft[node][node_candidate].push_back(left_candidate);
+                                    candidxleft[node][node_candidate][left_candidate] =
+                                        calcWgt(g.wgts[g.nodes[left_candidate]+j], 0);
                                 float best_left_value = MAX_WEIGHT;
                                 float edge_wgt = calcWgt(g.wgts[g.nodes[left_candidate]+j], querytree.time);
                                 if ((edge_wgt + left_subtree_wgt) < best_left_value){
