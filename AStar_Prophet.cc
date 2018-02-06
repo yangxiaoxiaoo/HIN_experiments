@@ -76,13 +76,7 @@ QueryResult AStar_Prophet(const graph_t& g, Query query, double& timeUsed){
         }
 	int midLayer = query.pattern.size()/2 +1;//half forward and halp backward. And they meet and terminate at the same layer.
 	vector<unordered_map<int, float> > layers = create_Prophet_Heuristics(g, query, timeUsed);//layers stores the legitimate nodes on each level. Each layer is a set.
-//For testing purpose
-/*	for(int ct=0; ct<layers.size(); ct++){
-		cout << layers[ct].size() <<":\t" ;
-		for(unordered_map<int, float>::iterator itr=layers[ct].begin(); itr != layers[ct].end(); itr++)
-			cout << itr->first<<" ";
-		cout << endl;
-	}*/
+
 	std::priority_queue<PQEntity_AStar, std::vector<PQEntity_AStar>, comparator_AStar> frontier;
 	PQEntity_AStar curNode;
 	vector<int> tmpPath;
@@ -130,146 +124,12 @@ QueryResult AStar_Prophet(const graph_t& g, Query query, double& timeUsed){
 
 
 
-/*
-
-//A step forward in A* -- Three cases depending on whether the nodes are terminals or junctions
-int Expand_current(const graph_t& g, Query_tree querytree, vector <int> pre_order_patterns, int curId, PQEntity_AStar_Tree curNode,
-               Instance_Tree subtree, int& total,unordered_map<int, unordered_map<int, float>> node2layers, int curId_inpattern,
-               std::priority_queue<PQEntity_AStar_Tree, std::vector<PQEntity_AStar_Tree>, comparator_AStar_Tree>& frontier, int& numTrees){
-                   //each expanding operation may change: total, frontier, curId, curNode.  other variables wont change.
-        bool on_left = true;
-
-
-		if (find(querytree.junctions.begin(),querytree.junctions.end(), curId_inpattern) == querytree.junctions.end()){
-            //curId is not a junction, find the only child
-            if (find(querytree.terminals.begin(),querytree.terminals.end(), curId_inpattern) != querytree.terminals.end()){//--curId_inpattern is a terminal
-                if (curId_inpattern == querytree.terminals.back()){ //it is the last terminal
-                 //   cout<<"warning:--------reached the last terminal but still not finished"<<endl;
-                //    cout<<"the size of subtree is "<<subtree.nodes.size()<<", current node id is"<<curId_inpattern<<endl;
-                    return 0;
-                }
-                //if it is not the last terminal:
-
-           //     if (curId_inpattern == 4) cout<<"------------------------debug 4------------"<<endl;
-                int next_id_pattern = *(find(pre_order_patterns.begin(), pre_order_patterns.end(), curId_inpattern)+1); //curId_impattern's next one in pre_order_patterns, going to traverse him!
-              //old parent is a VERTEX id
-                int old_parent_inpattern = querytree.map2parent[next_id_pattern];
-                int old_parent = curNode.node2vertex[old_parent_inpattern];
-
-
-                on_left = false; //right neighbor.
-                for(int i=0; i<g.degree[old_parent]; i++){
-                    int neigh = g.neighbors[g.nodes[old_parent]+i];//neighbor id.
-                    unordered_map<int, float>::iterator found = node2layers[next_id_pattern].find(neigh);
-                    if(found!= node2layers[next_id_pattern].end() && (find(querytree.terminals.begin(), querytree.terminals.end(), neigh) == querytree.terminals.end()  ||(find(querytree.terminals.begin(), querytree.terminals.end(), next_id_pattern) != querytree.terminals.end())  )){ //if neigh right type; and 1.next one is not terminal or 2.specified by nextid_inpattern terminal
-                        //TEST print all neighs
-                       // cout<<"??"<<found->first <<"-> " <<found->second<<endl;
-
-                        float edgwgt = calcWgt(g.wgts[g.nodes[old_parent]+i], querytree.time);
-                        if(find(subtree.nodes.begin(), subtree.nodes.end(), neigh) == subtree.nodes.end() &&edgwgt+curNode.wgt<MAX_WEIGHT ){//three cond: found neigh in this layer; neigh not already in subtree;
-                            //append this neigh to the subtree at the right place
-                            Instance_Tree new_subtree = Instance_Tree_Insert(subtree, old_parent, neigh, edgwgt, on_left);
-
-                             //insert neigh to oldparent's right
-                            float wgtnew = edgwgt + curNode.wgt;
-                //            cout<<new_subtree.wgt<<"should equal to"<<wgtnew<<" is zero??"<<found->second<< endl;
-
-                            frontier.push(createPQEntity_AStar_Tree(neigh, next_id_pattern, edgwgt+curNode.wgt, edgwgt+curNode.wgt+found->second, new_subtree, curNode.vertex2node));
-                            numTrees ++;
-
-                        }
-                    }
-                }
-
-            }
-            else{  //curId is not a terminal, not a junction, just on path
-                int onlychild;
-                if (querytree.map2leftcdr.find(curId_inpattern)!=querytree.map2leftcdr.end()){ //has a left child
-                    onlychild = querytree.map2leftcdr[curId_inpattern];
-                    on_left = true;
-                }
-                else {
-                        if(querytree.map2rightcdr.find(curId_inpattern)!=querytree.map2rightcdr.end()){
-                            //curId has a right child.
-                            onlychild = querytree.map2rightcdr[curId_inpattern];
-                            on_left = false;
-                        }
-                        else {
-                   //             cout<<"warning, not a path!------------ADDED 0"<<endl;
-                                return 0;
-                        }
-                }
-
-                for(int i=0; i<g.degree[curId]; i++){
-                    numTrees ++;
-                    int neigh = g.neighbors[g.nodes[curId]+i];//neighbor id.
-                    unordered_map<int, float>::iterator found = node2layers[onlychild].find(neigh);
-                    float edgwgt = calcWgt(g.wgts[g.nodes[curId]+i], querytree.time);
-                    if( found != node2layers[onlychild].end() && find(subtree.nodes.begin(), subtree.nodes.end(), neigh) == subtree.nodes.end() && edgwgt+curNode.wgt<MAX_WEIGHT  && (find(querytree.terminals.begin(), querytree.terminals.end(), neigh) == querytree.terminals.end()  ||(find(querytree.terminals.begin(), querytree.terminals.end(), onlychild) != querytree.terminals.end()) ) ){
-                        //append this neigh to the subtree at the right place
-                        Instance_Tree new_subtree = Instance_Tree_Insert(subtree, curId, neigh, edgwgt, on_left);
-                                             //       cout<<new_subtree.nodes.size()<<subtree.nodes.size()<<endl;
-
-                 //       cout<<" is zero??"<<found->second<< endl;
-
-                        frontier.push(createPQEntity_AStar_Tree(neigh, onlychild, edgwgt+curNode.wgt, edgwgt+curNode.wgt+found->second, new_subtree, curNode.vertex2node));
-                        total += 1;
-                    }
-                }
-            }
-		}
-		else{ //curId is a junction, found in left child candidates and right child candidate.
-                int leftchild, rightchild;
-                leftchild = querytree.map2leftcdr[curId_inpattern];
-                rightchild = querytree.map2rightcdr[curId_inpattern];
-                //pushback with left child, update the right
-                for(int i=0; i<g.degree[curId]; i++){
-                    int neighleft = g.neighbors[g.nodes[curId]+i];//neighbor id 1.
-                    unordered_map<int, float>::iterator foundleft = node2layers[leftchild].find(neighleft);
-                    if (foundleft!= node2layers[leftchild].end()  && (find(querytree.terminals.begin(), querytree.terminals.end(), neighleft) == querytree.terminals.end()  ||(find(querytree.terminals.begin(), querytree.terminals.end(), leftchild) != querytree.terminals.end()) ) ){
-                        float edgwgt_left = calcWgt(g.wgts[g.nodes[curId]+i], querytree.time);
-                        if (find(subtree.nodes.begin(), subtree.nodes.end(), neighleft) == subtree.nodes.end()&& edgwgt_left+curNode.wgt<MAX_WEIGHT){
-                            Instance_Tree new_subtree = Instance_Tree_Insert(subtree, curId, neighleft, edgwgt_left, true);
-                                //                        cout<<new_subtree.nodes.size()<<subtree.nodes.size()<<endl;
-
-                            float update_rightvalue = MAX_WEIGHT;
-                            for(int j=0; j<g.degree[curId]; j++){ //update the rightvalue for each possible right child, find the lowest possible
-                                numTrees ++;
-                                if (j!=i){
-                                    int neighright = g.neighbors[g.nodes[curId]+j];
-                                    unordered_map<int, float>::iterator foundright = node2layers[rightchild].find(neighright);
-                                    if (foundright!= node2layers[rightchild].end() && find(subtree.nodes.begin(), subtree.nodes.end(), neighright) == subtree.nodes.end()){
-                                        float edgwgt_right = calcWgt(g.wgts[g.nodes[curId]+j], querytree.time);
-                                        float bottomup = foundright->second;
-                                       // cout<<"bottomup heuristic of rightnode is "<<bottomup<<endl;
-                                        if ((edgwgt_right + foundright->second)< update_rightvalue){ //more promising, update.
-                                            update_rightvalue = edgwgt_right + foundright->second;
-                                           // cout<<"new right value uodated to: "<<update_rightvalue<<endl;
-                                        }
-                                    }
-                                }
-                            }
-                   //         cout<<" is zero??"<<foundleft->first << foundleft->second<< endl;
-                          //  if (foundleft->second != 0)
-                            frontier.push(createPQEntity_AStar_Tree(neighleft, leftchild, edgwgt_left+curNode.wgt, edgwgt_left+curNode.wgt +foundleft->second+update_rightvalue, new_subtree, curNode.vertex2node));
-                            total += 1;
-                        }
-                    }
-                }
-            }
-
-    return curId;
-
-}
-
-*/
 
 //WWW version of expand current PET. return true if it is front element, else not.
 //Execute the expansion and insert non-front element to priority queue.
 bool Expand_current_v2(const graph_t& g, Query_tree querytree, vector <int> pre_order_patterns, int& curId, PQEntity_AStar_Tree& curNode,
                Instance_Tree subtree, int& total,unordered_map<int, unordered_map<int, tuple<float, float>>> node2layers, int curId_inpattern,
-               std::priority_queue<PQEntity_AStar_Tree, std::vector<PQEntity_AStar_Tree>, comparator_AStar_Tree>& frontier, int& numTrees,
-               unordered_set<int>& visited_nodes, unordered_map<int,  unordered_map<int, unordered_map<int, float>>> & candidxleft, unordered_map<int,  unordered_map<int, unordered_map<int, float>>> & candidxright){
+               std::priority_queue<PQEntity_AStar_Tree, std::vector<PQEntity_AStar_Tree>, comparator_AStar_Tree>& frontier, int& numTrees, unordered_map<int,  unordered_map<int, unordered_map<int, float>>> & candidxleft, unordered_map<int,  unordered_map<int, unordered_map<int, float>>> & candidxright){
                    //each expanding operation may change: total, frontier, curId, curNode.  other variables wont change.
         bool on_left = true;
         float old_key = curNode.key; //use this to compare with the new key later to decide it front-optimization.
@@ -357,46 +217,38 @@ bool Expand_current_v2(const graph_t& g, Query_tree querytree, vector <int> pre_
             }
 		}
 		else{ //curId is a junction.
-		    if(visited_nodes.find(curId_inpattern) == visited_nodes.end()){
-                visited_nodes.insert(curId_inpattern);
-                //first time visiting a junction: found in left child candidates and right child candidate.
-                int leftchild, rightchild;
-                leftchild = querytree.map2leftcdr[curId_inpattern];
-                rightchild = querytree.map2rightcdr[curId_inpattern];
-                on_left = true;
-                //pushback with left child, update the right
-                unordered_map<int, float> child_wgt = candidxleft[curId_inpattern][curId];
-                              for(auto it = child_wgt.begin(); it!= child_wgt.end(); it++){
-                    int neigh = it->first;
-                    float edgwgt = it->second;
-                    Instance_Tree new_subtree = Instance_Tree_Insert(subtree, curId, neigh, edgwgt, on_left);
-                    float rightvalue = get<1>(node2layers[curId_inpattern][curId]);
-                    float traversed_wgt = edgwgt+curNode.wgt;
-                    unordered_map<int, tuple<float,float>>::iterator found = node2layers[leftchild].find(neigh);
-                    float key = traversed_wgt + std::get<0>(found->second) + std::get<1>(found->second) + rightvalue;
-                    unordered_map<int, int> new_node2vertex = curNode.node2vertex;
-                    new_node2vertex[leftchild]= neigh;
-                    //cout<< key<<"replace" <<old_key<<endl;
-                    //assert(key >= old_key);
-                    if (!front_found && (key == old_key)){ //this is a front element! the first fond wont be inserted into PQ.
-                            front_found = true;
-                            curNode = (createPQEntity_AStar_Tree
-                                          (neigh, leftchild, traversed_wgt,key , new_subtree, new_node2vertex));
+            //first time visiting a junction: found in left child candidates and right child candidate.
+            int leftchild, rightchild;
+            leftchild = querytree.map2leftcdr[curId_inpattern];
+            rightchild = querytree.map2rightcdr[curId_inpattern];
+            on_left = true;
+            //pushback with left child, update the right
+            unordered_map<int, float> child_wgt = candidxleft[curId_inpattern][curId];
+                          for(auto it = child_wgt.begin(); it!= child_wgt.end(); it++){
+                int neigh = it->first;
+                float edgwgt = it->second;
+                Instance_Tree new_subtree = Instance_Tree_Insert(subtree, curId, neigh, edgwgt, on_left);
+                float rightvalue = get<1>(node2layers[curId_inpattern][curId]);
+                float traversed_wgt = edgwgt+curNode.wgt;
+                unordered_map<int, tuple<float,float>>::iterator found = node2layers[leftchild].find(neigh);
+                float key = traversed_wgt + std::get<0>(found->second) + std::get<1>(found->second) + rightvalue;
+                unordered_map<int, int> new_node2vertex = curNode.node2vertex;
+                new_node2vertex[leftchild]= neigh;
+                //cout<< key<<"replace" <<old_key<<endl;
+                //assert(key >= old_key);
+                if (!front_found && (key == old_key)){ //this is a front element! the first fond wont be inserted into PQ.
+                        front_found = true;
+                        curNode = (createPQEntity_AStar_Tree
+                                      (neigh, leftchild, traversed_wgt,key , new_subtree, new_node2vertex));
 
-                        }
-                    else{ //not a front element
-                        frontier.push(createPQEntity_AStar_Tree
-                                          (neigh, leftchild, traversed_wgt,key , new_subtree, new_node2vertex));
-                        total += 1;
                     }
+                else{ //not a front element
+                    frontier.push(createPQEntity_AStar_Tree
+                                      (neigh, leftchild, traversed_wgt,key , new_subtree, new_node2vertex));
+                    total += 1;
                 }
             }
-            else{
-                cout <<"In pre-order this part shouldn't be called."<<endl;
-                //insert at the right position.
-                return false;
 
-            }
         }
 
     return front_found;
@@ -848,8 +700,7 @@ QueryResultTrees Bruteforce(const graph_t& g, Query_tree querytree, double& time
         //for those that can never complete?
 
 		if (incompletetrees.size() > mem) mem ++;
-		//mem is the maximum lenghth that incompletetrees has reached.
-        //while there still is incomplete trees, pop out one instance and grow that one
+
 		incomplete_tree = incompletetrees.back();
 		incompletetrees.pop_back();
 		modified_trees = expend_withcheck(g, vertex2node, node2layers, querytree, incomplete_tree, numtrees);
@@ -932,11 +783,6 @@ QueryResult AStar_Prophet_pop(const graph_t& g, Query query, double& timeUsed, v
                     qResult.paths.push_back(cur_path);
                     break;
                 }
-
-            //    if (find(found_paths.begin(), found_paths.end(), cur_path)==found_paths.end()){
-             //       qResult.paths.push_back(cur_path);
-             //       break;
-             //   }
 			}
 			continue;
 		}
@@ -1627,184 +1473,8 @@ QueryResultTrees Bruteforce_modified(const graph_t& g, Query_tree querytree, dou
 
 ///////////////////MAIN ALGORITHM//////////////////////////
 
-//Computes a prophet graph and runs A* to return k-ligh matching instances
-/*
-QueryResultTrees AStar_Prophet_Tree(const graph_t& g, Query_tree querytree, double& timeUsed){
-    int mem = 0, total = 1, numTrees = 0;
-	int iterationnum = querytree.patterns.size()-1;
-        float minWgt = MAX_WEIGHT;
-        QueryResultTrees qResultTree;
-
-
-        //check the struct invarient
-        //Check if the terminals are of the type that match the pattern requirements (in order)
-        for(int i=0; i<querytree.terminals_index.size(); i++){
-            cout<<"TEST OUTPUT "<<g.typeMap[querytree.nodes_ordered[querytree.terminals_index[i]]]<<" & "<<querytree.patterns[querytree.terminals_index[i]]<<endl;
-
-
-
-
-            if( (g.typeMap[querytree.nodes_ordered[querytree.terminals_index[i]]]!=querytree.patterns[querytree.terminals_index[i]])){
-                cout<< "src or tgt node does not follow pattern!" << endl;
-                return qResultTree;
-                }
-        }
-
-    //Decompose the pattern (binary tree) into paths
-    vector<GeneralizedQuery> decomposed_queries = decompo_Query_Tree(querytree);
-
-    //Maps a node in pattern to vertices in input graph that potentially map to it
-    //potentially implies type matches of paths to all terminals
-    unordered_map<int, unordered_map<int, float>> node2layers; //candidate set with each's weight from lower level terminals. Will return this as tree prophet graph
-
-    //Every time a vertex is in the node2layers of a node, record it here. Note that a vertex may be mapped to many different nodes in the pattern.
-    unordered_map<int, int> vertex2node; //NOTE:  vertex2node is not 1-1 mapping
-
-    //Intermediate data structures to record who is from left and who is from right to a junction node.
-    unordered_map<int, float> junction_leftmap;
-    unordered_map<int, float> junction_rightmap;
-
-    //for each path query (obtained by decomposition), generate candidate prophet graph
-    for (int i=0; i<decomposed_queries.size(); i++){//process by the post-order
-        GeneralizedQuery current_query = decomposed_queries[i];
-        //If in the path being processed now, either source or target is a junction, return the previous iteration's node2layers to initialize the values
-        if (find(querytree.junctions.begin(), querytree.junctions.end(), current_query.srcs.begin()->first)!= querytree.junctions.end()){ //if src is a junction, get candidate layers from previous iteration
-            current_query.srcs = node2layers[current_query.srcs.begin()->first];
-        }
-        else{
-            if(find(querytree.junctions.begin(), querytree.junctions.end(), current_query.tgts.begin()->first)!= querytree.junctions.end()){ //tgt is a junction
-                current_query.tgts = node2layers[current_query.tgts.begin()->first];
-            }
-        }
-        vector<unordered_map<int, float> > layers;
-        unordered_map<int, float> current_junction_leftmap;
-        unordered_map<int, float> current_junction_rightmap;
-
-        //Calling path query function from Albert (which has been generalized here to handle a set of potentially matching vertices as source or target)
-        //It also computes the heuristic values in the process (value of a node2layer node key)
-        layers = create_Prophet_Heuristics_generalized(g, current_query, timeUsed, current_junction_leftmap, current_junction_rightmap);//layers stores the legitimate nodes on each level. Each layer is a set.
-
-        for (int i=0; i< layers.size(); i++){
-            node2layers[current_query.nodes[i]] = layers[i];  //i-th node updated into the candidate set chart. using map--unordered map for now...
-            for (auto it = layers[i].begin(); it!=layers[i].end(); it++){
-                int vertex = it->first;
-                vertex2node[vertex] = current_query.nodes[i];
-            }
-
-        }
-
-
-        junction_leftmap.insert(current_junction_leftmap.begin(), current_junction_leftmap.end());
-        junction_rightmap.insert(current_junction_rightmap.begin(), current_junction_rightmap.end());
-    }
-    //at this point, each node has a heuristic weight from leaves.
-
-    //A priority queue in a vector container containing elements of type PQEntity_AStar_Tree
-	std::priority_queue<PQEntity_AStar_Tree, std::vector<PQEntity_AStar_Tree>, comparator_AStar_Tree> frontier;
-	PQEntity_AStar_Tree curNode;
-	//Root is the last element of the post_order traversal of pattern tree
-	int root = querytree.nodes_ordered.back();
-
-	//for all vertices matching the root node, push them in priority queue
-	for(unordered_map<int, float>::iterator it_root=node2layers[root].begin(); it_root!=node2layers[root].end(); it_root++){
-        Instance_Tree tmptree;
-        tmptree.nodes.insert(it_root->first);
-        tmptree.wgt = 0;
-        unordered_map<int, int> empty_vertex2node;
-        frontier.push(createPQEntity_AStar_Tree(it_root->first, root, 0, it_root->second, tmptree, empty_vertex2node));//frontier is the priority queue. replace src with root.
-        numTrees ++;
-	}
-
-	    //build a reference to decide which is the next curId_inpattern the neighbor should match to, on which side,
-    //b pre-order based on a stack.
-    stack <int> s;
-    int curId_inpattern = root;
-    vector <int> pre_order_patterns; //they are id of nodes, not type. NOTE
-    //Traversing query pattern in pre-order
-    while(true){
-            if (pre_order_patterns.size()>= querytree.nodes_ordered.size()) break;
-            while(true){
-                pre_order_patterns.push_back(curId_inpattern); //first time at one node.
-                cout<<"expended on current pattern is "<< curId_inpattern<< endl;
-                s.push(curId_inpattern);
-                if (querytree.map2leftcdr.find(curId_inpattern)!= querytree.map2leftcdr.end()){//current ppattern node still have left child;
-                        curId_inpattern = querytree.map2leftcdr[curId_inpattern];
-                }
-                else//have no left child;
-                        break;
-            }
-            if (s.empty())
-                break;
-            else{
-                while(true){
-                    if (s.empty()) break; //reached the end of tree
-                    curId_inpattern = s.top();
-                    s.pop();
-                    if (querytree.map2rightcdr.find(curId_inpattern)!= querytree.map2rightcdr.end()){
-                        curId_inpattern = querytree.map2rightcdr[curId_inpattern];
-                        break;
-                    }
-                }
-            }
-
-
-        }
-    //now, pre_order_patterns is recording the patterns.
-    //for expansion, we need to know who is the next pattern node to match.
-
-    //Top-down traversal in pre-order
-	while(!frontier.empty()){//each time check one element in the PQ.
-		mem = max(mem, (int)frontier.size());
-		PQEntity_AStar_Tree curNode;
-		curNode = frontier.top();
-		frontier.pop();
-
-		int curId = curNode.nodeIdx;
-		int curId_inpattern = curNode.curId_inpattern;
-
-
-
-		int done_countes = curNode.subtree.nodes.size()-1;//start from 0.  done_counts: refer to the old path depth
-		Instance_Tree subtree = curNode.subtree;
-        if (curId == 4){
-            cout<<"pop out frontier curId is"<<curId<<endl;
-            cout<<done_countes<< "his inpattern node is"<<curId_inpattern<<endl;
-
-
-
-		}
-
-		if(done_countes==iterationnum){//reach the end of pattern.
-           // break;
-			if(curNode.wgt<MAX_WEIGHT){ //(%all terminal nodes are reached)--actually redundent.
-				if(qResultTree.trees.size()<TOP_K){
-                        subtree.wgt = curNode.wgt;
-                        qResultTree.trees.push_back(subtree);}
-                                if(qResultTree.trees.size()==TOP_K)
-                                        break;
-			}
-			continue;
-		}
-		//expanding the neighbors of current node
-		//Expand the most promising path with vertices mapping the next node in the path (if it exists, but can trace back otherwise)
-		//It also updates the value of the right path when entering the junction for the first time. This update involves finding the best heuristic estimate, given that the junction vertex is fixed
-
-
-        curId = Expand_current(g, querytree, pre_order_patterns, curId, curNode, subtree,total,node2layers, curId_inpattern,frontier, numTrees);
-        //each expanding operation may change: total, frontier, curId, curNode.
-		}
-
-	qResultTree.mem = mem;
-	qResultTree.numTrees = numTrees;
-        qResultTree.totalTrees = total;
-        //Return k-lightest matching trees
-        return qResultTree;
-}
-
-*/
-
-
-//all functions with v2 are refactor versions for WWW camera ready, and will replace their original after passing tests.
+//Computes a prophet graph and runs A* to return k-lightest matching instances.
+//functions with v2 are new versions for WWW camera ready, and will replace their original after passing tests.
 QueryResultTrees AStar_Prophet_Tree_v2(const graph_t& g, Query_tree querytree, double& timeUsed){
     int mem = 0, total = 1, numTrees = 0;
 	int iterationnum = querytree.patterns.size()-1;
@@ -1820,8 +1490,6 @@ QueryResultTrees AStar_Prophet_Tree_v2(const graph_t& g, Query_tree querytree, d
 
     //compute node2vertices_hrtc: a heuristic of left side and right side bottom down.
     //if a vertex has no left child, the left heuristic value will be 0.
-
-
 
 
     unordered_map<int,  unordered_map<int, unordered_map<int, float>>>  candidxleft;
@@ -1887,13 +1555,11 @@ QueryResultTrees AStar_Prophet_Tree_v2(const graph_t& g, Query_tree querytree, d
 
     //Top-down traversal in pre-order
     bool front_element = false;
-    unordered_set<int> visited_junctions;
+
 
 	while(!frontier.empty() || front_element){//each time check one element in the PQ. or, alternatively, there is a front_element out waiting to grow.
 		mem = max(mem, (int)frontier.size());
-        cout<<"curNode key"<<curNode.key <<endl;
-        cout<<"size"<<curNode.subtree.nodes.size() << endl;
-        cout<<"is front?"<<front_element<<endl;
+
 		if (!front_element){
             curNode = frontier.top();
             frontier.pop();
@@ -1925,7 +1591,7 @@ QueryResultTrees AStar_Prophet_Tree_v2(const graph_t& g, Query_tree querytree, d
 		//It also updates the value of the right path when entering the junction for the first time. This update involves finding the best heuristic estimate, given that the junction vertex is fixed
 
 
-        front_element = Expand_current_v2(g, querytree, pre_order_patterns, curId, curNode, subtree,total,node2vertices_hrtc, curId_inpattern,frontier, numTrees, visited_junctions, candidxleft, candidxright);
+        front_element = Expand_current_v2(g, querytree, pre_order_patterns, curId, curNode, subtree,total,node2vertices_hrtc, curId_inpattern,frontier, numTrees, candidxleft, candidxright);
         //each expanding operation may change: total, frontier, curId, curNode.
 		}
 
@@ -2351,119 +2017,3 @@ QueryResult Bidirec_AStar_Prophet(const graph_t& g, Query query){
         return qResult;
 }
 
-/*
-QueryResult AStar_Prophet_Explicit(const graph_t& g, Query query){
-	int maxDepth = query.pattern.size()-1;
-        float minWgt = MAX_WEIGHT;
-        QueryResult qResult;
-        if( (g.typeMap[query.src]!=query.pattern[0]) || (g.typeMap[query.tgt]!=query.pattern[maxDepth]) ){
-                cout << query.src << " to " << query.tgt << endl;
-                cout << g.typeMap[query.src] << " and " << g.typeMap[query.tgt] << endl;
-                cout<< "src or tgt node does not follow pattern!" << endl;
-                return qResult;
-        }
-	int midLayer = query.pattern.size()/2 +1;//half forward and halp backward. And they meet and terminate at the same layer.
-	double tp;
-	vector<unordered_map<int,float> > layers = create_Prophet_Heuristics(g, query, tp);//layers stores the legitimate nodes on each level. Each layer is a set.
-
-	vector<unordered_map<int, ProphetEntry> > prophetGraph;
-	for(int i=0; i<=maxDepth; i++){
-		unordered_map<int, ProphetEntry> oneLayer;
-		prophetGraph.push_back(oneLayer);
-	}
-	for(unordered_map<int,float>::iterator it=layers[midLayer-1].begin(); it!=layers[midLayer-1].end(); it++){
-		int node = it->first;
-		ProphetEntry tmpEntry;
-                prophetGraph[midLayer-1][node] = tmpEntry;
-	}
-	for(int i=midLayer; i<=query.pattern.size()-1; i++){//going down
-                unordered_map<int,float> lastLayer = layers[i-1];//upper layer.
-                unordered_map<int,float> newLayer;
-                for(unordered_map<int,float>::iterator it=lastLayer.begin(); it!=lastLayer.end(); it++){//expanding each node on last layer.
-                        int node = it->first;
-                        for(int j=0; j<g.degree[node]; j++){//visit the neighbors of each node.
-                                int neigh = g.neighbors[g.nodes[node]+j];
-                                if(layers[i].count(neigh)>0){//Note: pattern checking not needed. g.typeMap[neigh] == query.pattern[i] &&
-                               		float wgt = calcWgt(g.wgts[g.nodes[node]+j], query.time);
-                                        newLayer.insert(*(layers[i].find(neigh)));
-					prophetGraph[i-1].at(node).downwards.push_back(make_pair(neigh,wgt));
-					if(prophetGraph[i].count(neigh) == 0){
-						ProphetEntry tmpEntry;
-						prophetGraph[i][neigh] = tmpEntry;
-					}
-				}
-                        }
-                }
-                layers[i] = newLayer;
-        }
-	for(int i=midLayer-2; i>=0; i--){//going up
-                unordered_map<int, float> belowLayer = layers[i+1];
-                unordered_map<int, float> newLayer;
-                for(unordered_map<int, float>::iterator it=belowLayer.begin(); it!=belowLayer.end(); it++){
-                        int node = it->first;
-                        for(int j=0; j<g.degree[node]; j++){
-                                int neigh = g.neighbors[g.nodes[node]+j];
-				float pathWgt = it->second;
-                                if(layers[i].count(neigh)>0){
-                               		float wgt = calcWgt(g.wgts[g.nodes[node]+j], query.time);
-					if(prophetGraph[i].count(neigh)==0){
-						ProphetEntry tmpEntry;
-						prophetGraph[i][neigh] = tmpEntry;
-						newLayer[neigh] = pathWgt + wgt;
-					}
-					else
-						 newLayer[neigh] = min(newLayer.at(neigh), pathWgt+wgt);
-					prophetGraph[i].at(neigh).downwards.push_back(make_pair(node,wgt));
-				}
-                        }
-                }
-		layers[i] = newLayer;
-	}
-
-	/**********Start searching***********/
-
-	/********************
-	std::priority_queue<PQEntity_AStar, std::vector<PQEntity_AStar>, comparator_AStar> frontier;
-	PQEntity_AStar curNode;
-	vector<int> tmpPath;
-	tmpPath.push_back(query.src);
-	frontier.push(createPQEntity_AStar(query.src, 0, 0, tmpPath));//frontier is the priority queue.
-	int mem = 0, total=1;
-	while(!frontier.empty()){
-		mem = max(mem, (int)frontier.size());
-		PQEntity_AStar curNode;
-		curNode = frontier.top();
-		frontier.pop();
-		int curId = curNode.nodeIdx;
-		int depth = curNode.path.size()-1;//start from 0.
-		vector<int> path = curNode.path;
-		if(depth==maxDepth){//reach the end of pattern.
-			if(curId == query.tgt){
-				if(qResult.paths.size()<TOP_K)
-                                        qResult.paths.push_back(createPath(curNode.wgt, path));
-                                if(qResult.paths.size()==TOP_K)
-                                        break;
-			}
-			continue;
-		}
-		//expanding the neighbors of current node.
-		vector<pair<int,float> > neighVec = prophetGraph[depth][curId].downwards;
-		for(int j=0; j<neighVec.size(); j++){
-			int neigh = neighVec[j].first;//neighbor id.
-			float edgwgt = neighVec[j].second;
-			//if neighbor is not in the path and follow the pattern.
-			if( find(path.begin(), path.end(), neigh) == path.end() && edgwgt+curNode.wgt<MAX_WEIGHT ){
-				vector<int> newPath = path;
-				newPath.push_back(neigh);
-				frontier.push(createPQEntity_AStar(neigh, edgwgt+curNode.wgt, edgwgt+curNode.wgt+(layers[depth+1]).at(neigh), newPath));
-				total += 1;
-			}
-		}
-
-	}
-	qResult.mem = mem;
-        qResult.totalPaths = total;
-        return qResult;
-}
-
-******************/
