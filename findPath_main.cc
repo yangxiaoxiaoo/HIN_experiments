@@ -112,6 +112,8 @@ int main (int argc, char **argv){
 	gettimeofday(&time1, NULL);
 	//query the pattern
     QueryResultTrees qResult = AStar_Prophet_Tree_v2(G,testQTree,pTime2); //pTime2 is only useful if the weight depends on recency.
+
+ //   QueryResultTrees qResult = Bruteforce(G,testQTree,pTime2);
 	//TODO: assert this is the same as v1
 
     gettimeofday(&time2, NULL);

@@ -72,6 +72,10 @@ bool Expand_current_v2(const graph_t& g, Query_tree querytree, std::vector <int>
                     PQEntity_AStar_Tree& curNode,Instance_Tree subtree, int& total,std::unordered_map<int, std::unordered_map<int, std::tuple<float, float>>> node2layers,
                     int curId_inpattern, std::priority_queue<PQEntity_AStar_Tree, std::vector<PQEntity_AStar_Tree>, comparator_AStar_Tree>& frontier, int& numTrees,
                     std::unordered_map<int,  std::unordered_map<int, std::unordered_map<int, float>>> & candidxleft, std::unordered_map<int,  std::unordered_map<int, std::unordered_map<int, float>>> & candidxright);
+std::vector<PQEntity_AStar_Tree>  Expand_brute_v2(const graph_t& g, Query_tree querytree, std::vector <int> pre_order_patterns, int& curId,
+                    PQEntity_AStar_Tree& curNode,Instance_Tree subtree, int& total,std::unordered_map<int, std::unordered_map<int, std::tuple<float, float>>> node2layers,
+                    int curId_inpattern, int& numTrees,
+                    std::unordered_map<int,  std::unordered_map<int, std::unordered_map<int, float>>> & candidxleft, std::unordered_map<int,  std::unordered_map<int, std::unordered_map<int, float>>> & candidxright);
 
 int Expand_current_exhaust(const graph_t& g, Query_tree querytree, std::vector <int> pre_order_patterns, int curId,
                     PQEntity_AStar_Tree curNode,Instance_Tree subtree, int& total,std::unordered_map<int, std::unordered_map<int, float>> node2layers,
@@ -79,7 +83,7 @@ int Expand_current_exhaust(const graph_t& g, Query_tree querytree, std::vector <
 
 std::vector<Instance_Tree> Set_insert(const graph_t& g, Instance_Tree Old_tree, int this_node, int check_connection_node, bool insert_parent, bool insert_left, std::unordered_map<int, int> vertex2node, int&numtrees);
 std::vector<Instance_Tree> expend_withcheck(const graph_t& g, std::unordered_map<int, int> vertex2node, Query_tree querytree, Instance_Tree incomplete_tree, int& numtrees);
-std::vector<Instance_Tree> Top_k_weight(std::vector<Instance_Tree> complete_trees);
+std::vector<PQEntity_AStar_Tree> Top_k_weight(std::vector<PQEntity_AStar_Tree> complete_trees);
 int typecheck_all(const graph_t& g, Query_tree querytree, std::unordered_map<int, int>& vertex2node, std::unordered_map<int, std::unordered_map<int, float>>& node2layers);
 QueryResultTrees Bruteforce(const graph_t& g, Query_tree querytree, double& timeUsed);
 QueryResultTrees Bruteforce_modified (const graph_t& g, Query_tree querytree, double& timeUsed);
