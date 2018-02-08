@@ -23,36 +23,10 @@ vector<int> reverse_postorder(int root, unordered_map<int, int> map2leftcdr,
     return result;
 }
 
-/*
-Non_bi_tree_instance non_bi_instance(Instance_Tree binary_instance){
-
-}
-
-*/
 
 
 Query_tree binaryfy(Non_bi_tree tree){
 
-    /*
-    std::unordered_map<int, vector int > map2chr;
-    std::unordered_map<int, int> map2parent;
-	std::unordered_map<int, int> map2patthern;
-
-/////////////CONVERT TO//////////////////////
-
-	std::unordered_map<int, int> map2leftcdr;
-	std::unordered_map<int, int> map2rightcdr;
-	std::unordered_map<int, int> map2parent;
-	std::unordered_map<int, int> map2patthern;
-
-	std::vector<int> nodes_ordered; //unknown set as 0.
-    std::vector<int> terminals_index; //the position of n terminals in the ordered nodes
-    std::vector<int> junction_index; //the position of (n-1) junction nodes
-    std::vector<int> junctions;
-    std::vector<int> terminals;
-	std::vector<int> patterns;//the type of nodes
-
-	*/
 
     Query_tree bi_tree;
 
@@ -1399,10 +1373,11 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                         int node_candidate = g.neighbors[g.nodes[left_candidate]+j];
                         if (g.typeMap[node_candidate] == querytree.map2patthern[node]){
                             left_connected_cands.insert(node_candidate);
-                            candidxleft[node][node_candidate][left_candidate]
-                                = calcWgt(g.wgts[g.nodes[left_candidate]+j], 0);
+
+
                             float best_left_value = MAX_WEIGHT;
                             float edge_wgt = calcWgt(g.wgts[g.nodes[left_candidate]+j], querytree.time);
+                            candidxleft[node][node_candidate][left_candidate] = edge_wgt;
                             if ((edge_wgt + left_subtree_wgt) < best_left_value){
                                 best_left_value = (edge_wgt + left_subtree_wgt);
                                 get<0>(hrtcs[node][node_candidate]) = best_left_value;
@@ -1420,10 +1395,11 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                         int node_candidate = g.neighbors[g.nodes[right_candidate]+j];
                         if (g.typeMap[node_candidate] == querytree.map2patthern[node]){
                             right_connected_cands.insert(node_candidate);
-                            candidxright[node][node_candidate][right_candidate]
-                                = calcWgt(g.wgts[g.nodes[right_candidate]+j], 0);
+
+
                             float best_right_value = MAX_WEIGHT;
                             float edge_wgt = calcWgt(g.wgts[g.nodes[right_candidate]+j], querytree.time);
+                            candidxright[node][node_candidate][right_candidate] = edge_wgt;
                             if ((edge_wgt + right_subtree_wgt) < best_right_value){
                                 best_right_value = (edge_wgt + right_subtree_wgt);
                                 get<1>(hrtcs[node][node_candidate]) = best_right_value;
@@ -1458,10 +1434,11 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                         for(int j = 0; j < g.degree[right_candidate]; j++){
                             int node_candidate = g.neighbors[g.nodes[right_candidate]+j];
                             if (g.typeMap[node_candidate] == querytree.map2patthern[node]){
-                                candidxright[node][node_candidate][right_candidate]
-                                    =calcWgt(g.wgts[g.nodes[right_candidate]+j], 0);
+
+
                                 float best_right_value = MAX_WEIGHT;
                                 float edge_wgt = calcWgt(g.wgts[g.nodes[right_candidate]+j], querytree.time);
+                                candidxright[node][node_candidate][right_candidate] = edge_wgt;
                                 if ((edge_wgt + right_subtree_wgt) < best_right_value){
                                     best_right_value = (edge_wgt + right_subtree_wgt);
 
@@ -1484,10 +1461,11 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                         for(int j = 0; j < g.degree[left_candidate]; j++){
                             int node_candidate = g.neighbors[g.nodes[left_candidate]+j];
                             if (g.typeMap[node_candidate] == querytree.map2patthern[node]){
-                                    candidxleft[node][node_candidate][left_candidate] =
-                                        calcWgt(g.wgts[g.nodes[left_candidate]+j], 0);
+
                                 float best_left_value = MAX_WEIGHT;
                                 float edge_wgt = calcWgt(g.wgts[g.nodes[left_candidate]+j], querytree.time);
+                                candidxleft[node][node_candidate][left_candidate] = edge_wgt;
+
                                 if ((edge_wgt + left_subtree_wgt) < best_left_value){
                                     best_left_value = (edge_wgt + left_subtree_wgt);
 
