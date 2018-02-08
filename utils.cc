@@ -997,7 +997,6 @@ vector<std::unordered_map<int, float>> create_Prophet_Heuristics_generalized(con
 			for(int j=0; j<g.degree[node]; j++){//visit the neighbors of each node.
 				int neigh = g.neighbors[g.nodes[node]+j];
 				int observe_type = g.typeMap[neigh];
-	//			cout<<"current node is "<<node<<" ,neighbor node name is "<<neigh<< "this neighbor type is "<<observe_type<<endl;
 				if(g.typeMap[neigh] == Gquery.pattern[i])
 					newLayer[neigh] = MAX_WEIGHT;
 			}
@@ -1261,7 +1260,7 @@ vector<Path> pq2vec(priority_queue<Path, std::vector<Path>, comparator2> candida
 vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree){ //only decompose the pattern, ititialize source and target as empty
     vector<GeneralizedQuery> decomposed_queries;
 
-    cout<< "decomposing tree query..." << endl;
+
     if (QTree.nodes_ordered.size()<2){
         return decomposed_queries;
     }
@@ -1293,7 +1292,6 @@ vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree){ //only decompose 
             for(current_node = src; current_node!= current_junction;){
                 nodes_pattern.push_back(QTree.map2patthern[current_node]);
                 nodes_temp.push_back(current_node);
-                cout<<"added " <<current_node << " to the current path, "<<"his pattern is "<<QTree.map2patthern[current_node]<<endl;
                 next_node = QTree.map2parent[current_node];
                 if (next_node==current_node){
                     break;
@@ -1304,7 +1302,6 @@ vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree){ //only decompose 
             for(current_node = current_junction; current_node!= tgt;){
                 nodes_pattern.push_back(QTree.map2patthern[current_node]);
                 nodes_temp.push_back(current_node);
-                cout<<"added " <<current_node << " to the current path, "<<"his pattern is "<<QTree.map2patthern[current_node]<<endl;
                 if (QTree.map2rightcdr.find(current_node) == QTree.map2rightcdr.end()){
                         next_node = QTree.map2leftcdr[current_node];
                     }
@@ -1319,7 +1316,7 @@ vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree){ //only decompose 
 
             nodes_pattern.push_back(QTree.map2patthern[tgt]);
             nodes_temp.push_back(tgt);
-            cout<<"added " <<tgt << " to the current path, "<<"his pattern is "<<QTree.map2patthern[tgt]<<endl;
+
 
             non_touched_JT.erase(std::remove(non_touched_JT.begin(), non_touched_JT.end(), src),non_touched_JT.end());
             non_touched_JT.erase(std::remove(non_touched_JT.begin(), non_touched_JT.end(), tgt),non_touched_JT.end());
@@ -1330,10 +1327,10 @@ vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree){ //only decompose 
             generalized_query.pos_junction = find(nodes_temp.begin(), nodes_temp.end(), current_junction)-nodes_temp.begin();
             generalized_query.nodes = nodes_temp;
             decomposed_queries.push_back(generalized_query);
-            cout<< "added the above query to decomposed vector, the remaining JT size is "<<non_touched_JT.size()<< endl;
+
     }
 
-        cout<<non_touched_JT.size()<<"==make sure is 1" <<endl;
+
         assert(non_touched_JT.size() == 1);
 
     return decomposed_queries;
@@ -1450,6 +1447,7 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                     }
                 }
                 else{
+                    assert (querytree.map2leftcdr.find(node)!= querytree.map2leftcdr.end());
                     //node has a left child
                     int leftchild = querytree.map2leftcdr[node];
                     int best_left_candidate = 0;
