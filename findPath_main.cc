@@ -111,12 +111,12 @@ int main (int argc, char **argv){
 
 	gettimeofday(&time1, NULL);
 	//query the pattern
- //   QueryResultTrees qResult = AStar_Prophet_Tree_v2(G,testQTree,pTime2); //pTime2 is only useful if the weight depends on recency.
+    QueryResultTrees qResult = AStar_Prophet_Tree_v2(G,testQTree,pTime2); //pTime2 is only useful if the weight depends on recency.
 
  //   QueryResultTrees qResult = Bruteforce(G,testQTree,pTime2);
 
 
-	QueryResultTrees qResult = Backbone_query(G,testQTree,pTime2);
+//	QueryResultTrees qResult = Backbone_query(G,testQTree,pTime2);
 
     gettimeofday(&time2, NULL);
 	//int numtree = qResult.numTrees; //the search space: number of trees generated

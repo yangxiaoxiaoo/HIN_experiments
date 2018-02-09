@@ -136,7 +136,8 @@ bool Expand_current_v2(const graph_t& g, Query_tree querytree, vector <int> pre_
         bool on_left = true;
         float old_key = curNode.key; //use this to compare with the new key later to decide it front-optimization.
         bool front_found = false;
-        subtree = curNode.subtree;
+        curId = curNode.nodeIdx; //must update! otherwise wrong for front element.
+
         PQEntity_AStar_Tree Top_element;
 
 		if (find(querytree.junctions.begin(),querytree.junctions.end(), curId_inpattern) == querytree.junctions.end()){
@@ -157,11 +158,13 @@ bool Expand_current_v2(const graph_t& g, Query_tree querytree, vector <int> pre_
                 for(auto it = child_wgt.begin(); it!= child_wgt.end(); it++){
                     int neigh = it->first;
                     float edgwgt = it->second;
+                    subtree = curNode.subtree;
                     if(find(subtree.nodes.begin(), subtree.nodes.end(),neigh)== subtree.nodes.end()){
-                        Instance_Tree new_subtree = Instance_Tree_Insert(subtree, curId, neigh, edgwgt, on_left);
+                        Instance_Tree new_subtree = Instance_Tree_Insert(subtree, old_parent, neigh, edgwgt, on_left);
                         float traversed_wgt = edgwgt+subtree.wgt;
 
                         unordered_map<int, tuple<float,float>>::iterator found = node2layers[next_id_pattern].find(neigh);
+                        assert (found != node2layers[next_id_pattern].end() );
                         float leftvalue = get<0>(node2layers[old_parent_inpattern][old_parent]);
                         float rightvalue = get<1>(node2layers[old_parent_inpattern][old_parent]);
 
@@ -208,6 +211,7 @@ bool Expand_current_v2(const graph_t& g, Query_tree querytree, vector <int> pre_
                 for(auto it = child_wgt.begin(); it!= child_wgt.end(); it++){
                     int neigh = it->first;
                     float edgwgt = it->second;
+                    subtree = curNode.subtree;
                     if(find(subtree.nodes.begin(), subtree.nodes.end(),neigh)== subtree.nodes.end()){
                         Instance_Tree new_subtree = Instance_Tree_Insert(subtree, curId, neigh, edgwgt, on_left);
 
@@ -251,6 +255,7 @@ bool Expand_current_v2(const graph_t& g, Query_tree querytree, vector <int> pre_
                           for(auto it = child_wgt.begin(); it!= child_wgt.end(); it++){
                 int neigh = it->first;
                 float edgwgt = it->second;
+                subtree = curNode.subtree;
                 if(find(subtree.nodes.begin(), subtree.nodes.end(),neigh)== subtree.nodes.end()){
                     Instance_Tree new_subtree = Instance_Tree_Insert(subtree, curId, neigh, edgwgt, on_left);
 
@@ -318,7 +323,7 @@ std::vector<PQEntity_AStar_Tree>  Expand_brute_v2(const graph_t& g, Query_tree q
                     float edgwgt = it->second;
                     if(find(subtree.nodes.begin(), subtree.nodes.end(),neigh)== subtree.nodes.end()){
                     //check if vertex has been used!
-                        Instance_Tree new_subtree = Instance_Tree_Insert(subtree, curId, neigh, edgwgt, on_left);
+                        Instance_Tree new_subtree = Instance_Tree_Insert(subtree, old_parent, neigh, edgwgt, on_left);
                         float traversed_wgt = edgwgt+curNode.wgt;
                         new_subtree.wgt = traversed_wgt;
                         unordered_map<int, tuple<float,float>>::iterator found = node2layers[next_id_pattern].find(neigh);

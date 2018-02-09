@@ -1372,12 +1372,14 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                             left_connected_cands.insert(node_candidate);
 
 
-                            float best_left_value = MAX_WEIGHT;
+                            float best_left_value = MAX_WEIGHT; //smallest from this child...not globally.
                             float edge_wgt = calcWgt(g.wgts[g.nodes[left_candidate]+j], querytree.time);
                             candidxleft[node][node_candidate][left_candidate] = edge_wgt;
+
                             if ((edge_wgt + left_subtree_wgt) < best_left_value){
                                 best_left_value = (edge_wgt + left_subtree_wgt);
-                                get<0>(hrtcs[node][node_candidate]) = best_left_value;
+                                if (get<0>(hrtcs[node][node_candidate]) == 0) get<0>(hrtcs[node][node_candidate]) = best_left_value;
+                                else  get<0>(hrtcs[node][node_candidate]) = min(get<0>(hrtcs[node][node_candidate]), best_left_value);
                             }
                         }
                     }
@@ -1399,7 +1401,8 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                             candidxright[node][node_candidate][right_candidate] = edge_wgt;
                             if ((edge_wgt + right_subtree_wgt) < best_right_value){
                                 best_right_value = (edge_wgt + right_subtree_wgt);
-                                get<1>(hrtcs[node][node_candidate]) = best_right_value;
+                                if (get<1>(hrtcs[node][node_candidate]) == 0) get<1>(hrtcs[node][node_candidate]) = best_right_value;
+                                else get<1>(hrtcs[node][node_candidate]) = min(get<1>(hrtcs[node][node_candidate]) , best_right_value);
                             }
                         }
                     }
@@ -1418,6 +1421,8 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                 }
             }
             else{
+
+
                 //node has only one child, set the other field to 0.
                 if(querytree.map2rightcdr.find(node)!= querytree.map2rightcdr.end()) {
                     //node has a right child
@@ -1440,7 +1445,9 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                                     best_right_value = (edge_wgt + right_subtree_wgt);
 
                                     get<0>(hrtcs[node][node_candidate]) = 0;
-                                    get<1>(hrtcs[node][node_candidate]) = best_right_value;
+
+                                    if(get<1>(hrtcs[node][node_candidate]) == 0 ) get<1>(hrtcs[node][node_candidate]) = best_right_value;
+                                    else get<1>(hrtcs[node][node_candidate]) = min(get<1>(hrtcs[node][node_candidate]) , best_right_value);
                                 }
                             }
                         }
@@ -1467,7 +1474,9 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
                                 if ((edge_wgt + left_subtree_wgt) < best_left_value){
                                     best_left_value = (edge_wgt + left_subtree_wgt);
 
-                                    get<0>(hrtcs[node][node_candidate]) = best_left_value;
+                                    if (get<0>(hrtcs[node][node_candidate]) == 0) get<0>(hrtcs[node][node_candidate]) = best_left_value;
+                                    else  get<0>(hrtcs[node][node_candidate]) = min(get<0>(hrtcs[node][node_candidate]), best_left_value);
+
                                     get<1>(hrtcs[node][node_candidate]) = 0;
                                 }
                             }
@@ -1477,7 +1486,6 @@ unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_comput
             }
         }
     }
-
 
 
     return hrtcs;
