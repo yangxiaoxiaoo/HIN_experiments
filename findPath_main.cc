@@ -93,6 +93,7 @@ int main (int argc, char **argv){
 
     char *in_fname = argv[1];
     char *qfname = argv[2];
+    string option(argv[4]);
 
 	double timeDiff = 0.0;
 	double pTime1 = 0, pTime2 = 0;//time for establishing prophet graph.
@@ -102,51 +103,22 @@ int main (int argc, char **argv){
 	PrunedLandmarkLabeling<> pll;
 	vector<pair<int, int>> edge_list;
 
-	Query_tree sampledTree;
-	Query_tree testQTree;
-	int shape = atoi(argv[4]);
-	int seed = atoi(argv[5]);
-
 	graph_t G = load_graph(in_fname, edge_list);//loading the graph.
-
-	sampledTree = sampleFrom(G, seed, shape);
-	if (sampledTree.nodes_ordered[0]!= 9999){
-		testQTree = sampledTree;
-		std::cout<<"sampling success: found a query tree!"<<endl;
-	}
-	else{
-		std::cout<<"sampling failure, do nothing for this seed..."<<endl;
-		return 0;
-	}
-
-	for (int i=0; i<testQTree.nodes_ordered.size(); i++){
-        testQTree.map2patthern.insert(make_pair(testQTree.nodes_ordered[i], testQTree.patterns[i]));
-	}
-	for (int i=0; i<testQTree.junction_index.size();i++){
-        testQTree.junctions.push_back(testQTree.nodes_ordered[testQTree.junction_index[i]]);
-	}
-	cout<<testQTree.junctions.size()<<endl;
-    for (int i=0; i<testQTree.terminals_index.size();i++){
-        testQTree.terminals.push_back(testQTree.nodes_ordered[testQTree.terminals_index[i]]);
-	}
-
-
 
 
 	cout << "# nodes: " << G.n << ".  # edges: " << G.neighbors.size()/2 << endl;
 	gettimeofday(&start,NULL);
-	//Query_tree testQTree = readfromfile(qfname);
+	Query_tree testQTree = readfromfile(qfname);
 
 
 
 	gettimeofday(&time1, NULL);
 	//query the pattern
- //   QueryResultTrees qResult = AStar_Prophet_Tree_v2(G,testQTree,pTime2); //pTime2 is only useful if the weight depends on recency.
 
- //   QueryResultTrees qResult = Bruteforce(G,testQTree,pTime2);
-
-
-	QueryResultTrees qResult = Backbone_query(G,testQTree,pTime2);
+    QueryResultTrees qResult;
+    if (option == "0") qResult = AStar_Prophet_Tree_v2(G,testQTree,pTime2); //pTime2 is only useful if the weight depends on recency.
+    if (option == "1") qResult = Bruteforce(G,testQTree,pTime2);
+    if (option == "2") qResult = Backbone_query(G,testQTree,pTime2);
 
     gettimeofday(&time2, NULL);
 	//int numtree = qResult.numTrees; //the search space: number of trees generated
@@ -176,30 +148,7 @@ int main (int argc, char **argv){
 	else
 		ofs0 << endl;
 	ofs0.flush();
-	/////////////baseline 1
 
-/*
-	print2FileTree(qResult1, timeDiff1, ofs0) ;
-
-	if(pTime1 != 0)
-		ofs0<< "\t" << pTime1 << endl;
-	else if(pTime2 !=0 )
-		ofs0<< "\t" << pTime2 << endl;
-	else
-		ofs0 << endl;
-	ofs0.flush();
-	/////////////baseline 2
-	print2FileTree(qResult2, timeDiff2, ofs0) ;
-
-	if(pTime1 != 0)
-		ofs0<< "\t" << pTime1 << endl;
-	else if(pTime2 !=0 )
-		ofs0<< "\t" << pTime2 << endl;
-	else
-		ofs0 << endl;
-	ofs0.flush();
-
-*/
 
 	ofs0.close();
 

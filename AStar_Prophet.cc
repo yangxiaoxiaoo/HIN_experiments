@@ -1275,12 +1275,12 @@ QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& 
 	cout<<"the position of root on backbone is: "<<rootpos;
 
 
-    int numtrees, mem, totalTrees = 0; //TODO: increase them accordingly!
+    int numTrees, mem, totalTrees = 0; //TODO: increase them accordingly!
 
     float min_kseen_weight = MAX_WEIGHT;
     float newest_path_wgt = 0;
 
-    vector<PQEntity_AStar_Tree> candidate_trees;
+
     vector<PQEntity_AStar_Tree> TOPk_trees;
     Query_tree_fixed left_querytree;
     Query_tree_fixed right_querytree;
@@ -1289,6 +1289,20 @@ QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& 
     Instance_Tree right_instance;
     Instance_Tree left_instance;
     Instance_Tree combined_tree;
+    unordered_set <int> used_roots;
+    int root = querytree.nodes_ordered.back();
+
+    vector<PQEntity_AStar_Tree> complete_trees;
+	vector<PQEntity_AStar_Tree> incompletetrees;
+	vector<PQEntity_AStar_Tree> modified_trees;
+	PQEntity_AStar_Tree curNode;
+
+    unordered_map<int,  unordered_map<int, unordered_map<int, float>>>  candidxleft;
+    unordered_map<int,  unordered_map<int, unordered_map<int, float>>>  candidxright;
+    //map a node in pattern into vertices in input graph that maps to its left children, if have any.
+
+    unordered_map<int, unordered_map<int, tuple<float,float>>> node2vertices_hrtc = bottom_up_hrtc_compute(g, querytree, candidxleft, candidxright);
+    //Maps a node in pattern to vertices in input graph that potentially map to it, each comes with a tuple of (left heuristic, right heuristic).
 
     while(true){
         QueryResult first_path = AStar_Prophet_pop(g, longest_path, timeUsed, found_paths);
@@ -1298,7 +1312,9 @@ QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& 
         longest_path_instance = first_path.paths.front(); //first element in a length 1 vector
         found_paths.push_back(longest_path_instance);
         newest_path_wgt = longest_path_instance.wgt;
-        TOPk_trees = Top_k_weight(candidate_trees);
+        cout<<newest_path_wgt<<endl;
+        cout<< min_kseen_weight <<endl;
+        TOPk_trees = Top_k_weight(complete_trees);
         if (TOPk_trees.size()>0)
             min_kseen_weight = TOPk_trees.back().wgt;
         if (newest_path_wgt > min_kseen_weight){
@@ -1306,6 +1322,97 @@ QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& 
         }
 
         newest_path_wgt = longest_path_instance.wgt;
+        int root_vertex = longest_path_instance.nodeIds[rootpos];
+
+        if (used_roots.find(root_vertex) == used_roots.end()){
+            used_roots.insert(root_vertex);
+
+            Instance_Tree tmptree;
+            tmptree.nodes.insert(root_vertex);
+            tmptree.wgt = 0;
+            unordered_map<int, int> empty_node2vertex;
+            empty_node2vertex[root] = root_vertex;
+            float key = get<0>(node2vertices_hrtc[root][root_vertex]) + get<1>(node2vertices_hrtc[root][root_vertex]);
+            incompletetrees.push_back(createPQEntity_AStar_Tree(root_vertex, root, 0, key, tmptree, empty_node2vertex));
+
+            stack <int> s;
+            int curId_inpattern = root;
+            vector <int> pre_order_patterns; //they are id of nodes, not type. NOTE
+            //Traversing query pattern in pre-order
+            while(true){
+                    if (pre_order_patterns.size()>= querytree.nodes_ordered.size()) break;
+                    while(true){
+                        pre_order_patterns.push_back(curId_inpattern); //first time at one node.
+                        cout<<"expended on current pattern is "<< curId_inpattern<< endl;
+                        s.push(curId_inpattern);
+                        if (querytree.map2leftcdr.find(curId_inpattern)!= querytree.map2leftcdr.end()){//current ppattern node still have left child;
+                                curId_inpattern = querytree.map2leftcdr[curId_inpattern];
+                        }
+                        else//have no left child;
+                                break;
+                    }
+                    if (s.empty())
+                        break;
+                    else{
+                        while(true){
+                            if (s.empty()) break; //reached the end of tree
+                            curId_inpattern = s.top();
+                            s.pop();
+                            if (querytree.map2rightcdr.find(curId_inpattern)!= querytree.map2rightcdr.end()){
+                                curId_inpattern = querytree.map2rightcdr[curId_inpattern];
+                                break;
+                            }
+                        }
+                    }
+                }
+
+            while(!incompletetrees.empty()){
+
+                if (incompletetrees.size() > mem) mem ++;
+
+                curNode = incompletetrees.back();
+                incompletetrees.pop_back();
+                int curId = curNode.nodeIdx;
+                int curId_inpattern = curNode.curId_inpattern;
+                Instance_Tree subtree = curNode.subtree;
+
+                modified_trees = Expand_brute_v2(g, querytree, pre_order_patterns, curId, curNode, subtree,totalTrees,node2vertices_hrtc, curId_inpattern, numTrees, candidxleft, candidxright);
+
+                totalTrees += modified_trees.size();
+
+                for (int i=0; i<modified_trees.size(); i++){
+                    PQEntity_AStar_Tree modified_tree = modified_trees[i];
+                    if(modified_tree.subtree.nodes.size() == querytree.nodes_ordered.size()){ //already complete after the growth
+                        complete_trees.push_back(modified_tree);
+                    }
+                    else{
+                        incompletetrees.push_back(modified_tree);
+                    }
+                }
+            }
+
+        }
+
+        //update the best seen value for the next pop()
+    }
+
+
+    TOPk_trees = Top_k_weight(complete_trees);
+    vector<Instance_Tree> trees;
+    for (int i = 0; i< TOPk_trees.size() && i < TOP_K; i++){
+        trees.push_back(TOPk_trees[i].subtree);
+    }
+
+    result.trees = trees;
+
+	result.mem = mem;
+	result.totalTrees = totalTrees;
+	return result;
+
+
+
+/*
+
         left_querytree = left_from_backbone(rootpos, querytree, longest_path, longest_path_instance);  //modify the query into a querytree and a set of extra_terminals
         right_querytree = right_from_backbone(rootpos, querytree, longest_path, longest_path_instance);
 
@@ -1367,7 +1474,6 @@ QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& 
     //NOTICE: this simple TOP pop one by one may be slow, since we have to swipe k times, and check each step finishing a tree.
     //--if it turns out to be the case, consider recursive.
 
-
     int mem_last = 0;
     Instance_Tree temptree;
     for (int i= 0; i< candidate_trees.size(); i++){
@@ -1391,6 +1497,8 @@ QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& 
    // result.mem = mem;
     result.totalTrees = totalTrees;
     return result;
+
+    */
 }
 
 

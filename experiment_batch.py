@@ -109,9 +109,45 @@ def auto_query_main():
                     print "trying outfile " + outfile
                     run(["./pro-heaps", infile, os.path.join(query_dir,queryfile), outfile], 700)
 
+def hard_template_run():
+    for template in ['T1', 'T2', 'T3', 'T4', 'T5']:
+        datasets = ['Enron']
+        for dataset in datasets:
+            query_dir =  dataset + '/template_queries/' + template + '/'
+            outdir = dataset + '/template_outputs_0/' + template + '/'
+            infile = "./Enron/enron_graph.wgt.norm"
+            #infile = "./DBLP/dblp_graph.new.wgt"
+            #infile = "./PhotoNet/graph_prank.graph_new.graph"
+            for queryfile in os.listdir(query_dir):
+                outfile = outdir + queryfile
+                #if not os.path.isfile(outfile + ".result.txt"):
+                print "trying outfile " + outfile
+                run(["./pro-heaps", infile, os.path.join(query_dir,queryfile), outfile, '0'], 700)
+
+
+def get_average(template, dataset, option):
+    outdir = dataset + '/template_outputs_' + str(option) + '/'+ template + '/'
+    total_time = 0
+    total_count = 0
+    for outfile in os.listdir(outdir):
+        total_count += 1
+        with open(os.path.join(outdir, outfile)) as fp:
+            for line in fp.readlines():
+                total_time += float(line.split()[0])
+    print total_time/total_count
+
+
+
+
+
 if __name__ == "__main__":
     #main()
 
     #redesigned experiments after March submission
-    auto_query_main()
+    #auto_query_main()
+
+    get_average('T2', 'Enron', '0')
+ #   hard_template_run()
+
+    
 
