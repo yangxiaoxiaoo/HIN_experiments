@@ -137,10 +137,10 @@ def test_gen(N):
     G = gen_bin_tree(N)
     print "try!!"
     print G.nodes()
-    pos = hierarchy_pos(G, 1)
-    nx.draw(G, pos=pos)
-    plt.draw()
-    plt.show()
+  #  pos = hierarchy_pos(G, 1)
+  #  nx.draw(G, pos=pos)
+  #  plt.draw()
+ #   plt.show()
 
 
 

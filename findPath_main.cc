@@ -87,7 +87,7 @@ int main (int argc, char **argv){
 
 
 
-// here is the old main before rewrite for Oct 17 quick experiment. Will recover once I am done.
+
 
 int main (int argc, char **argv){
 
@@ -102,21 +102,51 @@ int main (int argc, char **argv){
 	PrunedLandmarkLabeling<> pll;
 	vector<pair<int, int>> edge_list;
 
+	Query_tree sampledTree;
+	Query_tree testQTree;
+	int shape = atoi(argv[4]);
+	int seed = atoi(argv[5]);
+
 	graph_t G = load_graph(in_fname, edge_list);//loading the graph.
+
+	sampledTree = sampleFrom(G, seed, shape);
+	if (sampledTree.nodes_ordered[0]!= 9999){
+		testQTree = sampledTree;
+		std::cout<<"sampling success: found a query tree!"<<endl;
+	}
+	else{
+		std::cout<<"sampling failure, do nothing for this seed..."<<endl;
+		return 0;
+	}
+
+	for (int i=0; i<testQTree.nodes_ordered.size(); i++){
+        testQTree.map2patthern.insert(make_pair(testQTree.nodes_ordered[i], testQTree.patterns[i]));
+	}
+	for (int i=0; i<testQTree.junction_index.size();i++){
+        testQTree.junctions.push_back(testQTree.nodes_ordered[testQTree.junction_index[i]]);
+	}
+	cout<<testQTree.junctions.size()<<endl;
+    for (int i=0; i<testQTree.terminals_index.size();i++){
+        testQTree.terminals.push_back(testQTree.nodes_ordered[testQTree.terminals_index[i]]);
+	}
+
+
+
+
 	cout << "# nodes: " << G.n << ".  # edges: " << G.neighbors.size()/2 << endl;
 	gettimeofday(&start,NULL);
-	Query_tree testQTree = readfromfile(qfname);
+	//Query_tree testQTree = readfromfile(qfname);
 
 
 
 	gettimeofday(&time1, NULL);
 	//query the pattern
-    QueryResultTrees qResult = AStar_Prophet_Tree_v2(G,testQTree,pTime2); //pTime2 is only useful if the weight depends on recency.
+ //   QueryResultTrees qResult = AStar_Prophet_Tree_v2(G,testQTree,pTime2); //pTime2 is only useful if the weight depends on recency.
 
  //   QueryResultTrees qResult = Bruteforce(G,testQTree,pTime2);
 
 
-//	QueryResultTrees qResult = Backbone_query(G,testQTree,pTime2);
+	QueryResultTrees qResult = Backbone_query(G,testQTree,pTime2);
 
     gettimeofday(&time2, NULL);
 	//int numtree = qResult.numTrees; //the search space: number of trees generated
@@ -133,58 +163,6 @@ int main (int argc, char **argv){
         return 0; //terminate when there is no instances: do not count those queries.
 		}
 	cout << "#################################################"<< endl;
-
-
-
-  /////////////COMPARISON////////////////
-
-/*
-	gettimeofday(&time1, NULL);
-
-    QueryResultTrees qResult1 = Bruteforce(G,testQTree,pTime2);
-    gettimeofday(&time2, NULL);
-	//numtree = qResult1.numTrees; //the search space: number of trees generated
-	double timeDiff1 = (time2.tv_sec + double(time2.tv_usec)/1000000) - (time1.tv_sec + double(time1.tv_usec)/1000000);
-
-    if(qResult1.trees.size()>0){
-        for (int i=0; i<qResult1.trees.size(); i++){
-                cout  <<i<<" th lightest tree has weight: "<< qResult1.trees[i].wgt << "\t" << qResult1.mem << "\t" <<qResult1.numTrees<< "\t" << qResult1.totalTrees << "\t" <<"time--"<<timeDiff1<<endl;
-        }
-    }
-
-	else{
-        cout << -1 << "\t" << qResult1.mem << "\t" << qResult1.totalTrees << endl;
-        return 0;
-	}
-	cout << "#################################################"<< endl;
-
-
-
-
-
-//Backbone_query
-	gettimeofday(&time1, NULL);
-	//query the pattern
-    QueryResultTrees qResult2 = Backbone_query(G,testQTree,pTime2); //pTime2 is only useful if the weight depends on recency.
-
-    gettimeofday(&time2, NULL);
-	//int numtree = qResult2.numTrees; //the search space: number of trees generated
-	double timeDiff2 = (time2.tv_sec + double(time2.tv_usec)/1000000) - (time1.tv_sec + double(time1.tv_usec)/1000000);
-
-    if(qResult2.trees.size()>0){
-        for (int i=0; i<qResult2.trees.size(); i++){
-                cout  <<i<<" th lightest tree has weight: "<< qResult2.trees[i].wgt << "\t" << qResult2.mem << "\t" <<qResult2.numTrees << "\t" << qResult.totalTrees << "\t" <<"time--"<<timeDiff<<endl;
-        }
-    }
-
-	else{
-        cout << -1 << "\t" << qResult2.mem << "\t" << qResult2.totalTrees << endl;
-        return 0; //terminate when there is no instances: do not count those queries.
-		}
-	cout << "#################################################"<< endl;
-
-*/
-
 
 
 	string outputFile(argv[3]);

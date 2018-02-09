@@ -516,9 +516,22 @@ class new_tree:
 
 
 
-if __name__ == '__main__':
-    new_tree_test = new_tree()
+    def templete1(self):
+        graph = nx.Graph()
+        graph.add_nodes_from([1, 2, 3, 4, 5])
+        graph.add_edges_from([(1, 2), (2, 3), (2, 4), (1,5)])
+        return graph
 
-    new_tree_test.test_new_tree(14)
+    def hard_templates(self):
+        tree = self.templete1()
+        g, v2type = load_graph_struct("./DBLP/dblp_graph.new.wgt")
+        self.new_tree_match(g, v2type, tree, threshold=4, outfile_prefix="./DBLP/hard/template" + str(N) + '/',
+                            repeat=20)
+
+if __name__ == '__main__':
+
+
+    new_tree_test = new_tree()
+    new_tree_test.hard_templates()
 
 #    main()

@@ -211,42 +211,54 @@ Query_tree sampleFrom(const graph_t& g, int seed_node, int shape){
 //if there exist terminals that satisfy, return query_tree; else return empty.
     Query_tree QTree;
     QTree.nodes_ordered = {9999};
+
+    unordered_set <int> nodeset;
     if (shape == 1){ //shape1: 5 nodes tree
         int neigh1,neigh2, neigh3, neigh4;
         if (seed_node >= g.degree.size()){//seed_node not in graph
             return QTree;
         }
-        if (g.degree[seed_node] >= 2){
-            neigh1 = g.neighbors[g.nodes[seed_node]];
-            neigh2 = g.neighbors[g.nodes[seed_node]+1];
-            if (g.degree[neigh1]>= 3){
-                neigh3 = g.neighbors[g.nodes[neigh1]];
-                if (neigh3 == seed_node){
-                    neigh3 = g.neighbors[g.nodes[neigh1]+1];
-                    neigh4 = g.neighbors[g.nodes[neigh1]+2];
-                }
-                else{ //neigh3 hasn't appeared before
-                    neigh4 = g.neighbors[g.nodes[neigh1]+1];
-                    if (neigh4 == seed_node){
+        while (true){  //no repeated node!
+            if (g.degree[seed_node] >= 2){
+                int i1 = rand() % (g.degree[seed_node]) + 0;
+                int i2 = rand() % (g.degree[seed_node]) + 0;
+                neigh1 = g.neighbors[g.nodes[seed_node] + i1];
+                neigh2 = g.neighbors[g.nodes[seed_node]+ i2];
+                if (g.degree[neigh1]>= 3){
+                    int i1 = rand() % (g.degree[neigh1]) + 0;
+                    neigh3 = g.neighbors[g.nodes[neigh1] + i1];
+
+
+                    if (neigh3 == seed_node){
+                        neigh3 = g.neighbors[g.nodes[neigh1]+1];
                         neigh4 = g.neighbors[g.nodes[neigh1]+2];
                     }
-                }
-                //the only case QTree sampling was correct.
-                //output a query using root -> 0, neigh1 -> 1, found 3 and 4 terminals
+                    else{ //neigh3 hasn't appeared before
+                        neigh4 = g.neighbors[g.nodes[neigh1]+1];
+                        if (neigh4 == seed_node){
+                            neigh4 = g.neighbors[g.nodes[neigh1]+2];
+                        }
+                    }
+                    //the only case QTree sampling was correct.
+                    //output a query using root -> 0, neigh1 -> 1, found 3 and 4 terminals
 
-                QTree.nodes_ordered = {neigh3, neigh4 ,neigh1,neigh2,seed_node}; //SEED and neigh1 anonymous, 2/3/4 as terminals
-                QTree.map2leftcdr[seed_node]=neigh1;
-                QTree.map2leftcdr[neigh1]=neigh3;
-                QTree.map2rightcdr[seed_node]=neigh2;
-                QTree.map2rightcdr[neigh1]=neigh4;
-                QTree.map2parent[neigh3]=neigh1;
-                QTree.map2parent[neigh4]=neigh1;
-                QTree.map2parent[neigh1]=seed_node;
-                QTree.map2parent[neigh2]=seed_node;
-                QTree.terminals_index = {0, 1, 3};
-                QTree.junction_index = {2, 4};
-                QTree.patterns = {g.typeMap[neigh3], g.typeMap[neigh4], g.typeMap[neigh1],g.typeMap[neigh2],g.typeMap[seed_node]};
-                return QTree;
+                    QTree.nodes_ordered = {neigh3, neigh4 ,neigh1,neigh2,seed_node}; //SEED and neigh1 anonymous, 2/3/4 as terminals
+                    copy(QTree.nodes_ordered.begin(), QTree.nodes_ordered.end(), std::inserter(nodeset, nodeset.end()));
+                    if (nodeset.size()!= 5) continue; //make sure there is no repeated nodes.
+                    QTree.map2leftcdr[seed_node]=neigh1;
+                    QTree.map2leftcdr[neigh1]=neigh3;
+                    QTree.map2rightcdr[seed_node]=neigh2;
+                    QTree.map2rightcdr[neigh1]=neigh4;
+                    QTree.map2parent[neigh3]=neigh1;
+                    QTree.map2parent[neigh4]=neigh1;
+                    QTree.map2parent[neigh1]=seed_node;
+                    QTree.map2parent[neigh2]=seed_node;
+                    QTree.terminals_index = {0, 1, 3};
+                    QTree.junction_index = {2, 4};
+                    QTree.patterns = {g.typeMap[neigh3], g.typeMap[neigh4], g.typeMap[neigh1],g.typeMap[neigh2],g.typeMap[seed_node]};
+                    //QTree.patterns = {1, 1, 2, 2, 3};
+                    return QTree;
+                }
             }
         }
     }
