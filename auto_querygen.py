@@ -524,9 +524,12 @@ class new_tree:
 
     def hard_templates(self):
         tree = self.templete1()
+        adj = nx.adjacency_matrix(tree).todense()
         g, v2type = load_graph_struct("./DBLP/dblp_graph.new.wgt")
-        self.new_tree_match(g, v2type, tree, threshold=4, outfile_prefix="./DBLP/hard/template" + str(N) + '/',
-                            repeat=20)
+        prefix = "./Enron/"
+        seedfile = prefix + "seedranks.dat"
+
+        grow_from_seed(5, 5, adj, g, seedfile, v2type, prefix, seedamount=20)
 
 if __name__ == '__main__':
 
