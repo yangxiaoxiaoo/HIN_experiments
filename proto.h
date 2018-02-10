@@ -22,6 +22,7 @@ Path createPath(float wgt, std::vector<int> path);
 std::vector<Path> pq2vec(std::priority_queue<Path, std::vector<Path>, comparator2> candidates);
 std::vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree);
 std::unordered_map<int, std::unordered_set<int>> Retrieve_children(Query_tree QTree);
+std::unordered_map<int, int> record_fixed_nodes(std::vector<int> backbone_nodes, Query longest_path, Path longest_path_instance);
 std::unordered_map<int, std::unordered_map<int, std::tuple<float,float>>> bottom_up_hrtc_compute
 (const graph_t& g, Query_tree querytree, std::unordered_map<int,  std::unordered_map<int, std::unordered_map<int, float>>> & candidxleft, std::unordered_map<int, std::unordered_map<int, std::unordered_map<int, float>>> & candidxright);
 
@@ -76,6 +77,10 @@ std::vector<PQEntity_AStar_Tree>  Expand_brute_v2(const graph_t& g, Query_tree q
                     PQEntity_AStar_Tree& curNode,Instance_Tree subtree, int& total,std::unordered_map<int, std::unordered_map<int, std::tuple<float, float>>> node2layers,
                     int curId_inpattern, int& numTrees,
                     std::unordered_map<int,  std::unordered_map<int, std::unordered_map<int, float>>> & candidxleft, std::unordered_map<int,  std::unordered_map<int, std::unordered_map<int, float>>> & candidxright);
+std::vector<PQEntity_AStar_Tree>  Expand_backbone_v2(const graph_t& g, Query_tree querytree, std::vector <int> pre_order_patterns, int& curId,
+                    PQEntity_AStar_Tree& curNode,Instance_Tree subtree, int& total,std::unordered_map<int, std::unordered_map<int, std::tuple<float, float>>> node2layers,
+                    int curId_inpattern, int& numTrees, std::unordered_map<int, int> fixed_nodes,
+                    std::unordered_map<int,  std::unordered_map<int, std::unordered_map<int, float>>> & candidxleft, std::unordered_map<int,  std::unordered_map<int, std::unordered_map<int, float>>> & candidxright);
 
 int Expand_current_exhaust(const graph_t& g, Query_tree querytree, std::vector <int> pre_order_patterns, int curId,
                     PQEntity_AStar_Tree curNode,Instance_Tree subtree, int& total,std::unordered_map<int, std::unordered_map<int, float>> node2layers,
@@ -88,7 +93,7 @@ int typecheck_all(const graph_t& g, Query_tree querytree, std::unordered_map<int
 QueryResultTrees Bruteforce(const graph_t& g, Query_tree querytree, double& timeUsed);
 QueryResultTrees Bruteforce_modified (const graph_t& g, Query_tree querytree, double& timeUsed);
 //baseline2
-Query GetBackbone(const graph_t& g, Query_tree querytree, int &rootpos);
+Query GetBackbone(const graph_t& g, Query_tree querytree, int &rootpos, std::vector<int> & backbone_nodes);
 std::vector<Instance_Tree> All_matching_trees_fixed(const graph_t& g, Query_tree_fixed query_tree_fixed, double& timeUsed, int &numtrees, int &mem, int &totalTrees);
 Query_tree_fixed left_from_backbone(int rootpos, Query_tree querytree, Query BackboneQuery, Path backboneinstance);
 Query_tree_fixed right_from_backbone(int rootpos, Query_tree querytree, Query BackboneQuery, Path backboneinstance);

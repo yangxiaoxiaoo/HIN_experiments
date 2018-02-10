@@ -412,6 +412,162 @@ std::vector<PQEntity_AStar_Tree>  Expand_brute_v2(const graph_t& g, Query_tree q
 
 
 
+std::vector<PQEntity_AStar_Tree>  Expand_backbone_v2(const graph_t& g, Query_tree querytree, vector <int> pre_order_patterns, int& curId, PQEntity_AStar_Tree& curNode,
+               Instance_Tree subtree, int& total,unordered_map<int, unordered_map<int, tuple<float, float>>> node2layers, int curId_inpattern,
+               int& numTrees, unordered_map<int, int> fixed_nodes,
+               unordered_map<int,  unordered_map<int, unordered_map<int, float>>> & candidxleft, unordered_map<int,  unordered_map<int, unordered_map<int, float>>> & candidxright){
+                   //each expanding operation may change: total, frontier, curId, curNode.  other variables wont change.
+        std::vector<PQEntity_AStar_Tree> results;
+        bool on_left = true;
+        float old_key = curNode.key; //use this to compare with the new key later to decide it front-optimization.
+        bool front_found = false;
+        subtree = curNode.subtree;
+        assert (curNode.nodeIdx == curId);
+
+
+		if (find(querytree.junctions.begin(),querytree.junctions.end(), curId_inpattern) == querytree.junctions.end()){
+            //curId is not a junction
+            if (find(querytree.terminals.begin(),querytree.terminals.end(), curId_inpattern) != querytree.terminals.end()){
+                //--curId is a terminal
+                if (curId_inpattern == querytree.terminals.back()){ //it is the last terminal
+                    return results;
+                }
+
+                int next_id_pattern = *(find(pre_order_patterns.begin(), pre_order_patterns.end(), curId_inpattern)+1); //curId_impattern's next one in pre_order_patterns, going to traverse him!
+              //old parent is a VERTEX id
+                int old_parent_inpattern = querytree.map2parent[next_id_pattern];
+                int old_parent = curNode.node2vertex[old_parent_inpattern];
+                on_left = false; //right neighbor.
+
+                if (fixed_nodes.find(next_id_pattern)!= fixed_nodes.end()){
+                    //this node that I wish to add is already in backbone!
+                    //change curNode's id and id_inpattern, then return a vector with one element which is curNode.
+                    int neigh = fixed_nodes[next_id_pattern];
+                    Instance_Tree new_subtree = Instance_Tree_Insert(subtree, old_parent, neigh, 0, on_left); //weight included in path wgt.
+                    unordered_map<int, int> new_node2vertex = curNode.node2vertex;
+                    new_node2vertex[next_id_pattern]= neigh;
+                    results.push_back(createPQEntity_AStar_Tree
+                                                  (neigh, next_id_pattern, curNode.wgt, 0, new_subtree, new_node2vertex));
+                }
+                else{
+
+                    unordered_map<int, float> child_wgt = candidxright[old_parent_inpattern][old_parent];
+                    for(auto it = child_wgt.begin(); it!= child_wgt.end(); it++){
+                        int neigh = it->first;
+                        float edgwgt = it->second;
+                        if(find(subtree.nodes.begin(), subtree.nodes.end(),neigh)== subtree.nodes.end()){
+                        //check if vertex has been used!
+                            Instance_Tree new_subtree = Instance_Tree_Insert(subtree, old_parent, neigh, edgwgt, on_left);
+                            float traversed_wgt = edgwgt+curNode.wgt;
+                            new_subtree.wgt = traversed_wgt;
+                            unordered_map<int, tuple<float,float>>::iterator found = node2layers[next_id_pattern].find(neigh);
+                            float key = 0;
+                            unordered_map<int, int> new_node2vertex = curNode.node2vertex;
+                            new_node2vertex[next_id_pattern]= neigh;
+                            results.push_back(createPQEntity_AStar_Tree
+                                                  (neigh, next_id_pattern, traversed_wgt, key, new_subtree, new_node2vertex));
+                            total += 1;
+                        }
+                    }
+                }
+            }
+            else{  //curId is not a terminal, not a junction, just on path
+                int onlychild;
+                unordered_map<int,  unordered_map<int, unordered_map<int, float>>> candidx;
+                if (querytree.map2leftcdr.find(curId_inpattern)!=querytree.map2leftcdr.end()){ //has a left child
+                    onlychild = querytree.map2leftcdr[curId_inpattern];
+                    on_left = true;
+                    candidx = candidxleft;
+                }
+                else {
+                        if(querytree.map2rightcdr.find(curId_inpattern)==querytree.map2rightcdr.end()){
+                            onlychild = querytree.map2rightcdr[curId_inpattern];
+                            on_left = false;
+                            candidx = candidxright;
+                        }
+                        else {
+                                return results;
+                        }
+                }
+
+                if (fixed_nodes.find(onlychild)!= fixed_nodes.end()){
+                    int neigh = fixed_nodes[onlychild];
+                    Instance_Tree new_subtree = Instance_Tree_Insert(subtree, curId, neigh, 0, on_left); //weight included in path wgt.
+                    unordered_map<int, int> new_node2vertex = curNode.node2vertex;
+                    new_node2vertex[onlychild]= neigh;
+                    results.push_back(createPQEntity_AStar_Tree
+                                                  (neigh, onlychild, curNode.wgt, 0, new_subtree, new_node2vertex));
+
+                }
+                else{
+                    unordered_map<int, float> child_wgt = candidx[curId_inpattern][curId];
+                    for(auto it = child_wgt.begin(); it!= child_wgt.end(); it++){
+                        int neigh = it->first;
+                        float edgwgt = it->second;
+                        if(find(subtree.nodes.begin(), subtree.nodes.end(),neigh)== subtree.nodes.end()){
+
+                            Instance_Tree new_subtree = Instance_Tree_Insert(subtree, curId, neigh, edgwgt, on_left);
+                            float traversed_wgt = edgwgt+curNode.wgt;
+                            new_subtree.wgt = traversed_wgt;
+                            unordered_map<int, tuple<float,float>>::iterator found = node2layers[onlychild].find(neigh);
+                            float key = 0;
+                            unordered_map<int, int> new_node2vertex = curNode.node2vertex;
+                            new_node2vertex[onlychild]= neigh;
+                            results.push_back(createPQEntity_AStar_Tree
+                                                  (neigh, onlychild, traversed_wgt,key , new_subtree, new_node2vertex));
+                            total += 1;
+                        }
+                    }
+                }
+            }
+		}
+		else{ //curId is a junction.
+            //first time visiting a junction: found in left child candidates and right child candidate.
+            int leftchild, rightchild;
+            leftchild = querytree.map2leftcdr[curId_inpattern];
+            rightchild = querytree.map2rightcdr[curId_inpattern];
+            on_left = true;
+            //pushback with left child, update the right
+
+            if (fixed_nodes.find(leftchild)!= fixed_nodes.end()){
+                    int neigh = fixed_nodes[leftchild];
+                    Instance_Tree new_subtree = Instance_Tree_Insert(subtree, curId, neigh, 0, on_left); //weight included in path wgt.
+                    unordered_map<int, int> new_node2vertex = curNode.node2vertex;
+                    new_node2vertex[leftchild]= neigh;
+                    results.push_back(createPQEntity_AStar_Tree
+                                                  (neigh, leftchild, curNode.wgt, 0, new_subtree, new_node2vertex));
+
+                }
+            else{
+                unordered_map<int, float> child_wgt = candidxleft[curId_inpattern][curId];
+                for(auto it = child_wgt.begin(); it!= child_wgt.end(); it++){
+                    int neigh = it->first;
+                    float edgwgt = it->second;
+                    if(find(subtree.nodes.begin(), subtree.nodes.end(),neigh)== subtree.nodes.end()){
+
+                        Instance_Tree new_subtree = Instance_Tree_Insert(subtree, curId, neigh, edgwgt, on_left);
+                        float rightvalue = get<1>(node2layers[curId_inpattern][curId]);
+                        float traversed_wgt = edgwgt+curNode.wgt;
+                        new_subtree.wgt = traversed_wgt;
+                        unordered_map<int, tuple<float,float>>::iterator found = node2layers[leftchild].find(neigh);
+                        float key = 0;
+                        unordered_map<int, int> new_node2vertex = curNode.node2vertex;
+                        new_node2vertex[leftchild]= neigh;
+                        //cout<< key<<"replace" <<old_key<<endl;
+                        //assert(key >= old_key);
+                        results.push_back(createPQEntity_AStar_Tree
+                                              (neigh, leftchild, traversed_wgt,key , new_subtree, new_node2vertex));
+                        total += 1;
+                    }
+                }
+            }
+        }
+
+    return results;
+
+}
+
+
 
 //insert all candidates of this_node , append it next to check_connection_node in the specified way.
 vector<Instance_Tree> Set_insert(const graph_t& g, std::unordered_map<int, int> node2pattern, Instance_Tree Old_tree, int this_node, int check_connection_node, bool insert_parent, bool insert_left, unordered_map<int, int> vertex2node,     unordered_map<int, unordered_map<int, float>> node2layers, int& numtrees){
@@ -942,15 +1098,19 @@ vector<Instance_Tree> All_matching_trees(const graph_t& g, Query_tree querytree,
 	return complete_trees;
 }
 
-Query GetBackbone(const graph_t& g, Query_tree querytree, int &rootpos){
+Query GetBackbone(const graph_t& g, Query_tree querytree, int &rootpos, vector<int> & backbone_nodes){
     int src, tgt;
     vector<int> pattern_root2src;
     vector<int> pattern_root2tgt;
+    vector<int> nodes_root2src;
+    vector<int> nodes_root2tgt;
+
     Query backbone;
     int curnode = querytree.nodes_ordered.back();//start with root as a curnode.
     //traverse from root to the first terminal:
     while(true){
         pattern_root2src.push_back(g.typeMap[curnode]);
+        nodes_root2src.push_back(curnode);
         if (querytree.map2leftcdr.find(curnode)!= querytree.map2leftcdr.end()){//curnode has left child
             curnode = querytree.map2leftcdr[curnode];
         }
@@ -969,6 +1129,7 @@ Query GetBackbone(const graph_t& g, Query_tree querytree, int &rootpos){
     curnode = querytree.nodes_ordered.back();
     while(true){
         pattern_root2tgt.push_back(g.typeMap[curnode]);
+        nodes_root2tgt.push_back(curnode);
         if (querytree.map2rightcdr.find(curnode)!= querytree.map2rightcdr.end()){//curnode has left child
             curnode = querytree.map2rightcdr[curnode];
         }
@@ -987,7 +1148,9 @@ Query GetBackbone(const graph_t& g, Query_tree querytree, int &rootpos){
 	rootpos = pattern_root2src.size()-1;
     for(int i=1; i<pattern_root2tgt.size(); i++){
         pattern_root2src.push_back(pattern_root2tgt[i]);
+        nodes_root2src.push_back(nodes_root2tgt[i]);
     }
+    backbone_nodes = nodes_root2src;
     backbone.src = src;
     backbone.tgt = tgt;
     backbone.time = querytree.time;
@@ -1271,9 +1434,11 @@ QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& 
     vector<Path> found_paths;
 
 	int rootpos = 0;
-    longest_path = GetBackbone(g, querytree, rootpos);
+	vector<int> backbone_nodes;
+    longest_path = GetBackbone(g, querytree, rootpos, backbone_nodes);
 	cout<<"the position of root on backbone is: "<<rootpos;
 
+	unordered_map<int, int> fixed_nodes;
 
     int numTrees, mem, totalTrees = 0; //TODO: increase them accordingly!
 
@@ -1306,10 +1471,12 @@ QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& 
 
     while(true){
         QueryResult first_path = AStar_Prophet_pop(g, longest_path, timeUsed, found_paths);
+
         if (first_path.paths.size()==0){
             break; //break condition 1/2: when no more matching path can be found.
         }
         longest_path_instance = first_path.paths.front(); //first element in a length 1 vector
+        fixed_nodes = record_fixed_nodes(backbone_nodes, longest_path, longest_path_instance);
         found_paths.push_back(longest_path_instance);
         newest_path_wgt = longest_path_instance.wgt;
         cout<<newest_path_wgt<<endl;
@@ -1333,7 +1500,7 @@ QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& 
             unordered_map<int, int> empty_node2vertex;
             empty_node2vertex[root] = root_vertex;
             float key = get<0>(node2vertices_hrtc[root][root_vertex]) + get<1>(node2vertices_hrtc[root][root_vertex]);
-            incompletetrees.push_back(createPQEntity_AStar_Tree(root_vertex, root, 0, key, tmptree, empty_node2vertex));
+            incompletetrees.push_back(createPQEntity_AStar_Tree(root_vertex, root, newest_path_wgt, key, tmptree, empty_node2vertex));
 
             stack <int> s;
             int curId_inpattern = root;
@@ -1376,7 +1543,7 @@ QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& 
                 int curId_inpattern = curNode.curId_inpattern;
                 Instance_Tree subtree = curNode.subtree;
 
-                modified_trees = Expand_brute_v2(g, querytree, pre_order_patterns, curId, curNode, subtree,totalTrees,node2vertices_hrtc, curId_inpattern, numTrees, candidxleft, candidxright);
+                modified_trees = Expand_backbone_v2(g, querytree, pre_order_patterns, curId, curNode, subtree,totalTrees,node2vertices_hrtc, curId_inpattern, numTrees, fixed_nodes, candidxleft, candidxright);
 
                 totalTrees += modified_trees.size();
 

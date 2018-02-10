@@ -1349,6 +1349,19 @@ vector<GeneralizedQuery> decompo_Query_Tree(Query_tree QTree){ //only decompose 
 
 }
 
+
+std::unordered_map<int, int> record_fixed_nodes(vector<int> backbone_nodes, Query longest_path, Path longest_path_instance){
+
+    std::unordered_map<int, int> result;
+    assert (backbone_nodes.size() == longest_path_instance.nodeIds.size());
+    for (int i = 0; i < backbone_nodes.size(); i++){
+        result[backbone_nodes[i]] = longest_path_instance.nodeIds[i];
+        cout <<backbone_nodes[i] << "mapped to" << longest_path_instance.nodeIds[i] << endl;
+    }
+    return result;
+}
+
+
 unordered_map<int, unordered_map<int, tuple<float,float>>> bottom_up_hrtc_compute
 (const graph_t& g, Query_tree querytree, unordered_map<int,  unordered_map<int, unordered_map<int, float>>> & candidxleft, unordered_map<int,  unordered_map<int, unordered_map<int, float>>> & candidxright){
 
