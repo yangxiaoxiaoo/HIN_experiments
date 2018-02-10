@@ -1356,7 +1356,7 @@ std::unordered_map<int, int> record_fixed_nodes(vector<int> backbone_nodes, Quer
     assert (backbone_nodes.size() == longest_path_instance.nodeIds.size());
     for (int i = 0; i < backbone_nodes.size(); i++){
         result[backbone_nodes[i]] = longest_path_instance.nodeIds[i];
-        cout <<backbone_nodes[i] << "mapped to" << longest_path_instance.nodeIds[i] << endl;
+
     }
     return result;
 }
