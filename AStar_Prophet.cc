@@ -227,7 +227,7 @@ bool Expand_current_v2(const graph_t& g, Query_tree querytree, vector <int> pre_
                         unordered_map<int, int> new_node2vertex = curNode.node2vertex;
                         new_node2vertex[onlychild]= neigh;
 
-                        assert(key >= old_key);
+
                         if (!front_found && (key == old_key)){ //this is a front element! the first fond wont be inserted into PQ.
 
                                 front_found = true;
@@ -423,6 +423,8 @@ std::vector<PQEntity_AStar_Tree>  Expand_backbone_v2(const graph_t& g, Query_tre
         bool front_found = false;
         subtree = curNode.subtree;
         assert (curNode.nodeIdx == curId);
+
+
 
 
 		if (find(querytree.junctions.begin(),querytree.junctions.end(), curId_inpattern) == querytree.junctions.end()){
@@ -1469,6 +1471,12 @@ QueryResultTrees Backbone_query(const graph_t& g, Query_tree querytree, double& 
 
     unordered_map<int, unordered_map<int, tuple<float,float>>> node2vertices_hrtc = bottom_up_hrtc_compute(g, querytree, candidxleft, candidxright);
     //Maps a node in pattern to vertices in input graph that potentially map to it, each comes with a tuple of (left heuristic, right heuristic).
+
+    if (longest_path.pattern.size() == querytree.nodes_ordered.size()){
+        //this tree query is a path. directly call path one...
+        cout <<"special case: path! use the other set of terminologies!" << endl;
+        return result;
+    }
 
     int iters = 0;
     while(true){
