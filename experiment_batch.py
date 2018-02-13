@@ -137,6 +137,31 @@ def get_average(template, dataset, option):
     print total_time/total_count
 
 
+def get_template():
+
+    seen_seeds = set()
+    infile = "./PhotoNet/graph_prank_new.graph"
+    seedfile = "./PhotoNet/seedranks.dat"
+    datasetname = "PhotoNet"
+    number = 300
+
+    seed = 0
+    with open(seedfile,'r') as infileP:
+        for line in infileP:
+            if ordered_seed:
+                seed += 1
+            else:
+                seed = line.split('\t')[0]
+            if seed not in seen_seeds:
+                print "NEW ROUND START---"
+                outdir = "./"+datasetname+"/template_queries/T1/"+str(seed)
+                print outdir
+             
+                run(["./pro-heaps", infile, outdir, "1", str(seed)], 200)
+                   
+                seen_seeds.add(seed)
+                if len(seen_seeds) >= number:
+                    break
 
 
 
@@ -145,9 +170,11 @@ if __name__ == "__main__":
 
     #redesigned experiments after March submission
     #auto_query_main()
+    get_template()
 
-    get_average('T2', 'Enron', '0')
+#    get_average('T2', 'Enron', '0')
  #   hard_template_run()
+    
 
     
 

@@ -29,7 +29,7 @@
 #include <unistd.h>
 #include <map>
 #define MAX_WEIGHT 100000000
-#define TOP_K 400
+#define TOP_K 650
 #define WITH_ORACLE true
 #define WITHOUT_ORACLE false
 #define SAFE_LIFT 1000000

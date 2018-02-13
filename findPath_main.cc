@@ -87,8 +87,8 @@ int main (int argc, char **argv){
 
 
 
-
-
+/*
+//2018
 int main (int argc, char **argv){
 
     char *in_fname = argv[1];
@@ -155,11 +155,11 @@ int main (int argc, char **argv){
 
     return 0;
 }
+*/
 
 
 
-//select query number from a template
-/*
+//sampling main. takes the graph file, outputfile, shape, and seed.
 int main (int argc, char **argv){
 
     char *in_fname = argv[1];
@@ -181,10 +181,6 @@ int main (int argc, char **argv){
 	int shape = atoi(argv[3]);
 	int seed = atoi(argv[4]);
 
-
-
-	 //TEST CASE0 PASSED.
- // with instance maching
  /*
 
     testQTree.patterns = {0,1,1}; //this is node pattern. post-order 22211. edge has a label too.
@@ -231,7 +227,7 @@ int trans_seed = 0;
 
 
 ////////////REAL RUN: GIVEN SHAPE AND SEED FROM INPUT////////////
-/*
+
 	sampledTree = sampleFrom(G, seed, shape);
 	if (sampledTree.nodes_ordered[0]!= 9999){
 		testQTree = sampledTree;
@@ -257,10 +253,85 @@ int trans_seed = 0;
 	}
 
 
+	string outputFile(argv[2]);
+	string tmpstr = outputFile +".result.txt";
+	ofstream ofs0 (tmpstr.c_str(), std::ofstream::out);//creating output stream.
+
+	ofs0 << testQTree.map2leftcdr.size() <<" ";
+	for (auto it = testQTree.map2leftcdr.begin(); it != testQTree.map2leftcdr.end(); it ++ ){
+		ofs0 << it-> first <<" " << it -> second << " ";
+	}
+	ofs0 << endl;
+
+	ofs0 << testQTree.map2rightcdr.size() <<" ";
+	for (auto it = testQTree.map2rightcdr.begin(); it != testQTree.map2rightcdr.end(); it ++ ){
+		ofs0 << it-> first <<" " << it -> second << " ";
+	}
+	ofs0 << endl;
+
+	ofs0 << testQTree.map2parent.size() <<" ";
+	for (auto it = testQTree.map2parent.begin(); it != testQTree.map2parent.end(); it ++ ){
+		ofs0 << it-> first <<" " << it -> second << " ";
+	}
+	ofs0 << endl;
+
+	ofs0 << testQTree.nodes_ordered.size() <<" ";
+	for (int i=0; i < testQTree.nodes_ordered.size(); i ++ ){
+		ofs0 << testQTree.nodes_ordered[i] <<" " ;
+	}
+	ofs0 << endl;
+
+	ofs0 << testQTree.terminals_index.size() <<" ";
+	for (int i=0; i < testQTree.terminals_index.size(); i ++ ){
+		ofs0 << testQTree.terminals_index[i] <<" " ;
+	}
+	ofs0 << endl;
+
+	ofs0 << testQTree.terminals.size() <<" ";
+	for (int i=0; i < testQTree.terminals.size(); i ++ ){
+		ofs0 << testQTree.terminals[i] <<" " ;
+	}
+	ofs0 << endl;
+
+	ofs0 << testQTree.junction_index.size() <<" ";
+	for (int i=0; i < testQTree.junction_index.size(); i ++ ){
+		ofs0 << testQTree.junction_index[i] <<" " ;
+	}
+	ofs0 << endl;
+
+
+	ofs0 << testQTree.junctions.size() <<" ";
+	for (int i=0; i < testQTree.junctions.size(); i ++ ){
+		ofs0 << testQTree.junctions[i] <<" " ;
+	}
+	ofs0 << endl;
+
+	ofs0 << testQTree.patterns.size() <<" ";
+	for (int i=0; i < testQTree.patterns.size(); i ++ ){
+		ofs0 << testQTree.patterns[i] <<" " ;
+	}
+	ofs0 << endl;
+
+
+
+
+
+	ofs0.flush();
+
+
+	ofs0.close();
+
+
+    return 0;
+
+
+	return 0;
+}
+
 
 
   /////////////COMPARISON////////////////
-
+/*
 	gettimeofday(&time1, NULL);
 	cout <<"current seed is"<< seed<<endl;
     QueryResultTrees qResult1 = Bruteforce_modified(G,testQTree,pTime2);

@@ -175,7 +175,7 @@ bool Expand_current_v2(const graph_t& g, Query_tree querytree, vector <int> pre_
                         unordered_map<int, int> new_node2vertex = curNode.node2vertex;
                         new_node2vertex[next_id_pattern]= neigh;
                         if (!front_found && (key == old_key)){ //this is a front element! the first fond wont be inserted into PQ.
-
+                                cout << "front element optimization"<<endl;
                                 front_found = true;
                                 Top_element = createPQEntity_AStar_Tree
                                               (neigh, next_id_pattern, traversed_wgt, key, new_subtree, new_node2vertex);
@@ -229,7 +229,7 @@ bool Expand_current_v2(const graph_t& g, Query_tree querytree, vector <int> pre_
 
 
                         if (!front_found && (key == old_key)){ //this is a front element! the first fond wont be inserted into PQ.
-
+                                cout << "front element optimization"<<endl;
                                 front_found = true;
                                 Top_element = (createPQEntity_AStar_Tree
                                               (neigh, onlychild, traversed_wgt,key , new_subtree, new_node2vertex));
@@ -272,6 +272,7 @@ bool Expand_current_v2(const graph_t& g, Query_tree querytree, vector <int> pre_
                     new_node2vertex[leftchild]= neigh;
                     if (!front_found && (key == old_key)){ //this is a front element! the first fond wont be inserted into PQ.
                             front_found = true;
+                            cout << "front element optimization"<<endl;
                             Top_element = (createPQEntity_AStar_Tree
                                           (neigh, leftchild, traversed_wgt,key , new_subtree, new_node2vertex));
 
