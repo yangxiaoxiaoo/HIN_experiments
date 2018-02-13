@@ -87,7 +87,7 @@ int main (int argc, char **argv){
 
 
 
-/*
+
 //2018
 int main (int argc, char **argv){
 
@@ -155,9 +155,11 @@ int main (int argc, char **argv){
 
     return 0;
 }
-*/
 
 
+
+
+/*
 
 //sampling main. takes the graph file, outputfile, shape, and seed.
 int main (int argc, char **argv){
@@ -181,18 +183,7 @@ int main (int argc, char **argv){
 	int shape = atoi(argv[3]);
 	int seed = atoi(argv[4]);
 
- /*
 
-    testQTree.patterns = {0,1,1}; //this is node pattern. post-order 22211. edge has a label too.
-	testQTree.nodes_ordered = {0,1,5}; //non-terminal nodes assigned different values for edge distinction
-	testQTree.map2leftcdr[5]=0;
-	testQTree.map2rightcdr[5]=1;
-	testQTree.map2parent[0]=5;
-	testQTree.map2parent[1]=5;
-	testQTree.terminals_index = {0, 1};
-	testQTree.junction_index = {2};
-
-*/
 
 /*
 //TEST CASE 1, 2: Random select a seed and grow a tree out from there.
@@ -227,7 +218,7 @@ int trans_seed = 0;
 
 
 ////////////REAL RUN: GIVEN SHAPE AND SEED FROM INPUT////////////
-
+/*
 	sampledTree = sampleFrom(G, seed, shape);
 	if (sampledTree.nodes_ordered[0]!= 9999){
 		testQTree = sampledTree;
@@ -327,6 +318,8 @@ int trans_seed = 0;
 
 	return 0;
 }
+*/
+
 
 
 
